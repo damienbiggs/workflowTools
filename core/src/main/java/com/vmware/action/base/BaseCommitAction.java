@@ -80,7 +80,8 @@ public abstract class BaseCommitAction extends BaseAction {
     }
 
     protected boolean commitTextHasChanges(boolean includeJobResultsInCommit) {
-        String commitText = commitConfig.preferPullRequest ? draft.getGithubPullRequest().asText() : readLastChange();
+        String commitText = commitConfig.preferPullRequest && draft.getGithubPullRequest() != null
+                ? draft.getGithubPullRequest().asText() : readLastChange();
         ReviewRequestDraft existingDraft = new ReviewRequestDraft(commitText, commitConfig);
         String existingCommitText = existingDraft.toText(commitConfig);
         String updatedCommitText = updatedCommitText(includeJobResultsInCommit);

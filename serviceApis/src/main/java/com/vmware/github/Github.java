@@ -3,6 +3,7 @@ package com.vmware.github;
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +41,7 @@ import com.vmware.xmlrpc.MapObjectConverter;
 public class Github extends AbstractRestService {
 
     private final String graphqlUrl;
+    private final Map<String, User> loginIdToUserMap = new HashMap<>();
 
     public Github(String baseUrl, String graphqlUrl) {
         super(baseUrl, "", ApiAuthentication.github_token, NULL_USERNAME);
@@ -61,6 +63,19 @@ public class Github extends AbstractRestService {
         request.query = searchUsersQuery.replace("${query}", query).replace("${companyName}", companyName);
         GraphqlResponse response = post(graphqlUrl, GraphqlResponse.class, request);
         return response.data.search.usersForCompany(companyName);
+    }
+
+    public User getUser(String login) {
+        if (loginIdToUserMap.containsKey(login)) {
+            return loginIdToUserMap.get(login);
+        }
+        String userQuery = new ClasspathResource("/githubUserDetailsGraphql.txt", this.getClass()).getText();
+        GraphqlRequest request = new GraphqlRequest();
+
+        request.query = userQuery.replace("${loginId}", login);
+        GraphqlResponse response = post(graphqlUrl, GraphqlResponse.class, request);
+        loginIdToUserMap.put(login, response.data.user);
+        return response.data.user;
     }
 
     public PullRequest createPullRequest(PullRequestForUpdate pullRequest) {

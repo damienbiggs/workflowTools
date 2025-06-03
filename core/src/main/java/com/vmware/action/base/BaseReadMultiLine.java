@@ -23,7 +23,7 @@ public abstract class BaseReadMultiLine extends BaseCommitReadAction {
         if (!propertyValue.isEmpty()) {
             log.info("Existing value for section {}{}{}", property.getName(), System.lineSeparator(), propertyValue);
         }
-        String titleToDisplay = propertyValue.isEmpty() || !append ? title : "additional " + title;
+        String titleToDisplay = propertyValue.isEmpty() || !append ? title : "Additional " + title;
         if (append) {
             propertyValue += System.lineSeparator() + InputUtils.readData(titleToDisplay, false, commitConfig.maxDescriptionLength);
         } else {

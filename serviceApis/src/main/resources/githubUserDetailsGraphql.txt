@@ -1,0 +1,10 @@
+{
+  user(login: "${loginId}") {
+    login
+    ... on User {
+      login,
+      name,
+      url
+    }
+  }
+}

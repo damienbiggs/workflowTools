@@ -10,12 +10,9 @@ import com.vmware.github.domain.ReviewThread;
 import com.vmware.util.StringUtils;
 import com.vmware.util.logging.Padder;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,9 +48,16 @@ public class DisplayOpenPullRequestReviewComments extends BaseCommitWithPullRequ
                 log.info(comments.get(0).diffHunk);
                 log.info("");
             }
+            int longestAuthor = 0;
             for (ReviewComment comment : comments) {
-                String authorInfo = comment.author.login + " - ";
-                String body = comment.body.replace("\n", "\n" + StringUtils.repeat(authorInfo.length(), " "));
+                String authorName = github.getUser(comment.author.login).name;
+                longestAuthor = Math.max(authorName.length(), longestAuthor);
+            }
+
+            for (ReviewComment comment : comments) {
+                String authorName = github.getUser(comment.author.login).name;
+                String authorInfo = authorName + StringUtils.repeat(longestAuthor - authorName.length(), " ") + " - ";
+                String body = comment.body.replace("\n", "\n" + StringUtils.repeat(longestAuthor + 3, " "));
                 log.info("{}{}", authorInfo, body);
             }
             threadPadder.infoTitle();

@@ -17,6 +17,7 @@ public class GraphqlResponse {
         public Repository repository;
         public PullRequestNode pullRequest;
         public Search search;
+        public User user;
     }
 
     public static class Search {

@@ -23,11 +23,12 @@ public class CheckStatusOfPullRequestApprovals extends BaseCommitWithPullRequest
         PullRequest pullRequest = draft.getGithubPullRequest();
         GraphqlResponse.PullRequestNode pullRequestNode = github.getPullRequestViaGraphql(pullRequest);
         log.info("Pull request approval status: {}", pullRequestNode.reviewDecision);
-        List<String> approvers = pullRequestNode.approvers();
-        if (approvers.isEmpty()) {
+        List<String> approverIds = pullRequestNode.approvers();
+        String approverNames = approverIds.stream().map(id -> github.getUser(id).name).collect(Collectors.joining(","));
+        if (approverIds.isEmpty()) {
             log.info("Not approved by any reviewers yet");
         } else {
-            log.info("Pull request {} approved by {}", pullRequest.number, StringUtils.join(approvers));
+            log.info("Pull request {} approved by {}", pullRequest.number, approverNames);
         }
     }
 }
