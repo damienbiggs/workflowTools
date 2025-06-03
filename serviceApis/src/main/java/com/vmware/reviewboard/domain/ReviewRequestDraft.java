@@ -298,6 +298,9 @@ public class ReviewRequestDraft extends BaseEntity {
     }
 
     private List<JobBuild> generateJobBuildsList(String text, String jobUrlPattern) {
+        if (StringUtils.isEmpty(text)) {
+            return Collections.emptyList();
+        }
         Matcher buildMatcher = Pattern.compile("^" + jobUrlPattern + "\\s*$", Pattern.MULTILINE).matcher(text);
         List<JobBuild> jobBuilds = new ArrayList<>();
         while (buildMatcher.find()) {
@@ -441,7 +444,10 @@ public class ReviewRequestDraft extends BaseEntity {
         }
 
         if (isNotEmpty(description)) {
-            builder.append("\n\n").append(description).append("\n");
+            if (includeSummary) {
+                builder.append("\n\n");
+            }
+            builder.append(description).append("\n");
         }
         String testingDoneSection = fullTestingDoneSection(includeJobResults);
         if (isNotEmpty(testingDoneSection)) {
@@ -504,11 +510,7 @@ public class ReviewRequestDraft extends BaseEntity {
     }
 
     private String parseMultilineFromText(String text, String pattern, String description) {
-        return parseStringFromText(text, pattern, Pattern.DOTALL, description);
-    }
-
-    private String parseStringFromText(String text, String pattern, int patternFlags, String description) {
-        return parseStringFromText(text, pattern, patternFlags, description, DEBUG);
+        return parseStringFromText(text, pattern, Pattern.DOTALL, description, DEBUG);
     }
 
     private String parseStringFromText(String text, String pattern, int patternFlags, String description, LogLevel logLevel) {

@@ -41,4 +41,8 @@ public class PullRequest {
         pullRequestForUpdate.draft = draft;
         return pullRequestForUpdate;
     }
+
+    public String asText() {
+        return title + "\n" + body;
+    }
 }

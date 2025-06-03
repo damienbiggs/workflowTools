@@ -14,7 +14,7 @@ import com.vmware.util.input.InputUtils;
 import java.util.List;
 import java.util.Optional;
 
-@ActionDescription("Sets the git commit details from the associated review request. Uses published review info only.")
+@ActionDescription("Sets the git commit details from the associated review request.")
 public class SetCommitDetailsFromReview extends BaseCommitAction {
     private ReviewBoard reviewBoard;
 
@@ -49,7 +49,7 @@ public class SetCommitDetailsFromReview extends BaseCommitAction {
             reviewAsDraft = reviewRequest.asDraft();
         }
         if (StringUtils.isEmpty(reviewAsDraft.summary) && StringUtils.isEmpty(reviewAsDraft.description)) {
-            throw new FatalException("Summary and description and blank for review request {} and no draft found for request", reviewId);
+            throw new FatalException("Summary and description are blank for review request {} and no draft found for request", reviewId);
         }
         log.info("Using review request {} ({}) for commit details", reviewRequest.id, reviewAsDraft.summary);
         draft.id = String.valueOf(reviewRequest.id);

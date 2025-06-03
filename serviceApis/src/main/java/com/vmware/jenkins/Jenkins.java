@@ -119,7 +119,7 @@ public class Jenkins extends AbstractRestBuildService {
             TestResults allResults = new TestResults(jobBuild);
             List<JobBuildArtifact> testngResultsXmlFiles = jobBuild.getArtifactsForPathPattern(".+testng-results.xml$");
             if (testngResultsXmlFiles.isEmpty()) {
-                log.info("No testNG results files found for build {}, fetching via jenkins page", jobBuild.name);
+                log.debug("No testNG results files found for build {}, fetching via jenkins page", jobBuild.name);
                 return getJobBuildTestResults(jobBuild);
             }
             for (JobBuildArtifact testngFile : testngResultsXmlFiles) {
@@ -210,13 +210,13 @@ public class Jenkins extends AbstractRestBuildService {
                     Padder buildPadder = new Padder("Jenkins build {} status {}", jobBuild.buildNumber(), jobBuild.status);
                     buildPadder.infoTitle();
                     if (jobBuild.status != BuildStatus.FAILURE && jobBuild.status != BuildStatus.UNSTABLE) {
-                        String consoleOutput = IOUtils.tail(jobBuild.logTextUrl(), linesToShow);
+                        String consoleOutput = tail(jobBuild.logTextUrl(), linesToShow);
                         log.info(consoleOutput);
                     } else {
                         List<TestResult> failedTests = getJobBuildTestResults(jobBuild).failedTestResults();
                         if (failedTests.isEmpty()) {
                             log.info("No failed tests found, showing last {} lines of log text", linesToShow);
-                            String consoleOutput = IOUtils.tail(jobBuild.logTextUrl(), linesToShow);
+                            String consoleOutput = tail(jobBuild.logTextUrl(), linesToShow);
                             log.info(consoleOutput);
                         } else {
                             List<String> failedTestsText = failedTests.stream().map(TestResult::fullTestNameWithExceptionInfo).collect(Collectors.toList());

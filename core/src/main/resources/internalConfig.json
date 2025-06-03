@@ -208,6 +208,13 @@
       "ExitIfConfirmationNotGiven",
       "AmendCommit"
     ],
+    "setCommitDetailsFromPullRequest": [
+      "selectPullRequest&&--fail-if-no-request-found&&--prefer-pull-request=false",
+      "SetCommitDetailsFromPullRequest",
+      "DisplayCommit",
+      "ExitIfConfirmationNotGiven",
+      "AmendCommit&&--prefer-pull-request=false"
+    ],
     "commitAll": [
       "ExitIfNoChangesDetectedByGit",
       "RunPrecommitHooksIfNeeded",
@@ -555,16 +562,15 @@
       "DisplayOpenDiffNotes"
     ],
     "pullable": [
-      "ReadLastCommit",
+      "selectPullRequest&&--fail-if-no-request-found",
+      "SetCommitDetailsFromPullRequest",
       "CheckStatusOfJenkinsBuilds",
       "DisplayBuildOutputForJenkinsJobs",
       "CheckStatusOfBuildwebBuilds",
       "DisplayBuildOutputForBuildwebBuilds",
-      "AmendCommit",
       "CheckCommitForCheckstyleErrors",
-      "SelectMatchingPullRequest&&--fail-if-no-request-found",
-      "CheckStatusOfPullRequestApprovals",
-      "DisplayOpenPullRequestReviewComments"
+      "DisplayOpenPullRequestReviewComments",
+      "CheckStatusOfPullRequestApprovals"
     ],
     "checkSandboxStatus": [
       "ReadLastCommit",
@@ -814,7 +820,7 @@
       "CopyRequestUrlToClipboard"
     ],
     "updatePullRequestDetails" : [
-      "selectPullRequest&&--fail-if-no-request-found",
+      "selectPullRequest&&--fail-if-no-request-found&&--first-local-commit",
       "UpdatePullRequestDetails",
       "CopyRequestUrlToClipboard"
     ],

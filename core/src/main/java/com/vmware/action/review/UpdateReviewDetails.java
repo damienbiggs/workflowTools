@@ -8,8 +8,8 @@ import com.vmware.reviewboard.domain.ReviewRequest;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
 import com.vmware.util.StringUtils;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @ActionDescription("Updates the review request draft details (summary, description, testing done, bug number, groups, people).")
 public class UpdateReviewDetails extends BaseCommitUsingReviewBoardAction {
@@ -68,23 +68,11 @@ public class UpdateReviewDetails extends BaseCommitUsingReviewBoardAction {
     }
 
     private String determineDependsOnRequestIds() {
-        if (!git.workingDirectoryIsInGitRepo()) {
-            return null;
-        }
-        String mergeBase = git.mergeBase(gitRepoConfig.trackingBranchPath(), "HEAD");
-        String mergeBaseRef = git.revParse(mergeBase);
-        int counter = 1;
-        String lastCommitRef = git.revParse("HEAD~" + counter);
-        Set<String> linksForDependantRequests = new LinkedHashSet<>();
-        while (!lastCommitRef.equals(mergeBaseRef)) {
-            String commitText = git.commitText(counter++);
-            ReviewRequestDraft draftForCommit = new ReviewRequestDraft(commitText, commitConfig);
-            if (draftForCommit.hasReviewNumber()) {
-                linksForDependantRequests.add(draftForCommit.id);
-            }
-            lastCommitRef = git.revParse("HEAD~" + counter);
-        }
-        return String.join(",", linksForDependantRequests);
+        int commitCount = git.determineNumberCommitRefsAheadOfTrackingBranch(gitRepoConfig.trackingBranchPath());
+        return IntStream.range(0, commitCount - 1).mapToObj(index -> new ReviewRequestDraft(git.commitText(index), commitConfig))
+                .filter(ReviewRequestDraft::hasReviewNumber)
+                .map(draftRequest -> draftRequest.id)
+                .collect(Collectors.joining(","));
     }
 
     private String determineCommitId() {

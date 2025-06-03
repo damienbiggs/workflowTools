@@ -186,6 +186,21 @@ public class Git extends BaseScmWrapper {
         return Arrays.stream(commitsOutput.split(";break;")).filter(StringUtils::isNotBlank).collect(Collectors.toList());
     }
 
+
+    public int determineNumberCommitRefsAheadOfTrackingBranch(String trackingBranch) {
+        if (!workingDirectoryIsInGitRepo()) {
+            return 0;
+        }
+        String mergeBase = mergeBase(trackingBranch, "HEAD");
+        String mergeBaseRef = revParse(mergeBase);
+        int counter = -1;
+        String lastCommitRef;
+        do {
+            lastCommitRef = revParse("HEAD~" + ++counter);
+        } while (!lastCommitRef.equals(mergeBaseRef));
+        return counter;
+    }
+
     public List<String> commitsSince(Date date) {
         String formattedDate = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZ").format(date);
         String commitsOutput = executeScmCommand("log --pretty=\";break;commit %H%nAuthor: %an <%ae>%nDate: %ad%n%B\" --shortstat --date=local --since={}",

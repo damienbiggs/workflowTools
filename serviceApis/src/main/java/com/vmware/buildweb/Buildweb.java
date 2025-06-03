@@ -16,6 +16,10 @@ import com.vmware.util.MatcherUtils;
 import com.vmware.util.logging.Padder;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.vmware.util.UrlUtils.addRelativePaths;
 
@@ -27,12 +31,15 @@ public class Buildweb extends AbstractRestBuildService {
     private final String buildwebUrl;
     private final String buildwebLogFileName;
     private final String buildMachineHostNameSuffix;
+    private final Pattern buildwebBuildMachineIpPattern;
 
-    public Buildweb(String buildwebUrl, String buildwebApiUrl, String buildwebLogFileName, String buildMachineHostNameSuffix, String username) {
+    public Buildweb(String buildwebUrl, String buildwebApiUrl, String buildwebLogFileName, String buildMachineHostNameSuffix, String buildwebBuildMachineIpPattern, String username) {
         super(buildwebApiUrl, "/", ApiAuthentication.none, username);
         this.buildwebUrl = buildwebUrl;
         this.buildwebLogFileName = buildwebLogFileName;
         this.buildMachineHostNameSuffix = buildMachineHostNameSuffix;
+        this.buildwebBuildMachineIpPattern = buildwebBuildMachineIpPattern != null ?
+                Pattern.compile(buildwebBuildMachineIpPattern) : null;
         this.connection = new HttpConnection(RequestBodyHandling.AsStringJsonEntity);
     }
 
@@ -45,7 +52,7 @@ public class Buildweb extends AbstractRestBuildService {
 
     public void logOutputForBuilds(ReviewRequestDraft draft, int linesToShow, BuildStatus... results) {
         String urlToCheckFor = urlUsedInBuilds();
-        log.debug("Displaying output for failed builds matching url {}", urlToCheckFor);
+        log.debug("Displaying output for builds matching url {} with status {}", urlToCheckFor, results);
         List<JobBuild> jobsToCheck = draft.jobBuildsMatchingUrl(urlToCheckFor);
         jobsToCheck.stream().filter(jobBuild -> jobBuild.matches(results))
                 .forEach(jobBuild -> {
@@ -70,12 +77,29 @@ public class Buildweb extends AbstractRestBuildService {
         BuildMachine buildMachine = machines.realBuildMachine();
         String logsUrl;
         if (build.buildStatus == BuildStatus.BUILDING) {
-            String suffix = buildMachineHostNameSuffix != null ? buildMachineHostNameSuffix : "";
-            logsUrl = addRelativePaths("http://" + buildMachine.hostName + suffix, build.relativeBuildTreePath(), "logs", buildwebLogFileName);
+            String parsedIpAddress = parseIpAddress(buildMachine.hostName);
+            final String hostnameToUse;
+            if (parsedIpAddress != null) {
+                log.debug("Parsed {} IP address from hostname {}", parsedIpAddress, buildMachine.hostName);
+                hostnameToUse = parsedIpAddress;
+            } else if (buildMachineHostNameSuffix != null) {
+                hostnameToUse = buildMachine.hostName + buildMachineHostNameSuffix;
+            } else {
+                hostnameToUse = buildMachine.hostName;
+            }
+            logsUrl = addRelativePaths("http://" + hostnameToUse, build.relativeBuildTreePath(), "logs", buildwebLogFileName);
         } else {
             logsUrl = addRelativePaths(build.buildTreeUrl, "logs", buildMachine.hostType, buildwebLogFileName);
         }
         return logsUrl;
+    }
+
+    private String parseIpAddress(String hostName) {
+        Matcher matcher = buildwebBuildMachineIpPattern.matcher(hostName);
+        if (!matcher.matches() || matcher.groupCount() != 4) {
+            return null;
+        }
+        return IntStream.rangeClosed(1, 4).mapToObj(matcher::group).collect(Collectors.joining("."));
     }
 
     @Override

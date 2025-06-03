@@ -366,8 +366,8 @@ public class Vcd extends AbstractRestService {
     }
 
     private String loginWithCredentials(UsernamePasswordCredentials credentials) {
-        String loginUrl = baseUrl + "api/sessions";
-        RequestHeader acceptHeader = anAcceptHeader("*/*;version=" + apiVersion);
+        String loginUrl = baseUrl + "cloudapi/1.0.0/sessions/provider";
+        RequestHeader acceptHeader = anAcceptHeader("application/json;version=" + apiVersion);
         log.debug("Logging into vcd at url {} with username {} and accept header {}", loginUrl, credentials.getUsername(), acceptHeader);
         HttpResponse response = connection.post(loginUrl, HttpResponse.class, (Object) null,
                 acceptHeader, aBasicAuthHeader(credentials));

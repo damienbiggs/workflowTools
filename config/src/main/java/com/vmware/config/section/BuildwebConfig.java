@@ -24,6 +24,9 @@ public class BuildwebConfig {
     @ConfigurableProperty(help = "Optional hostname suffix for build machine, used for retrieving logs for a running build")
     public String buildwebBuildMachineHostNameSuffix;
 
+    @ConfigurableProperty(help = "Pattern to use to parse IP address from build machine hostname, hostname is used if no pattern is specified")
+    public String buildwebBuildMachineIpPattern;
+
     @ConfigurableProperty(help = "Path to gobuild bin file, this is a VMware specific tool")
     public String goBuildBinPath;
 

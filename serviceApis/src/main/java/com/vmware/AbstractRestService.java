@@ -32,6 +32,10 @@ public abstract class AbstractRestService extends AbstractService {
         return connection.isUriTrusted(URI.create(baseUrl));
     }
 
+    public String downloadFile(String url) {
+        return connection.get(url, String.class);
+    }
+
     protected void post(String url, Object requestBody, RequestParam... params) {
         post(url, null, requestBody, params);
     }

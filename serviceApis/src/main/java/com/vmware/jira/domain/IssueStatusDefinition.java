@@ -9,6 +9,7 @@ public enum IssueStatusDefinition implements ComplexEnum<Integer> {
     Reopened(4),
     Resolved(5),
     Closed(6),
+    WaitingForCodeReview(10021),
     InReview(10017),
     ReadyForQE(10020),
     Verified(10023),

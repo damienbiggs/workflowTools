@@ -30,14 +30,14 @@ public class UpdateVcdPublicCerts extends BaseAction {
         generalSettings.compute("tenantPortalExternalAddress",
                 (k,v) -> v == null || StringUtils.isEmpty(String.valueOf(v)) ? fileSystemConfig.sourceUrl : v);
 
-        updateCertValueForProperty(generalSettings, "systemExternalAddressPublicCertChain");
-        updateCertValueForProperty(generalSettings, "restApiBaseUriPublicCertChain");
-        updateCertValueForProperty(generalSettings, "tenantPortalPublicCertChain");
+        if (!generalSettings.containsKey("apiTokenDurationMinutes")) {
+            generalSettings.put("apiTokenDurationMinutes", 300);
+        }
+
+        generalSettings.put("restApiBaseUriPublicCertChain", fileSystemConfig.fileData);
 
         Map updatedSettings = vcdClientForSystemOrg.updateResourceFromMap("admin/extension/settings/general", generalSettings, resourceType, resourceType);
-        checkCertValueMatches(updatedSettings, "systemExternalAddressPublicCertChain");
         checkCertValueMatches(updatedSettings, "restApiBaseUriPublicCertChain");
-        checkCertValueMatches(updatedSettings, "tenantPortalPublicCertChain");
         log.info("Successfully updated public certificates for vcd url {}", fileSystemConfig.sourceUrl);
     }
 

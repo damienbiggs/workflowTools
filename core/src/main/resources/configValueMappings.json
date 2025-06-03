@@ -17,12 +17,6 @@
     "--property-value",
     "--input-text"
   ],
-  "BaseCommitUsingGitRepoAction": [
-    "--tracking-branch",
-    "--target-merge-branch",
-    "--username",
-    "--source-merge-branch"
-  ],
   "ExitIfGitDiffDoesNotMatchRbtDiff": [
     "--parent"
   ],
@@ -750,7 +744,11 @@
     "--skip-pipeline"
   ],
   "BaseCommitAction": [
+    "--tracking-branch",
+    "--target-merge-branch",
     "--username",
+    "--source-merge-branch",
+    "--prefer-pull-request",
     "--changelist-id"
   ],
   "SelectVappVm": [
@@ -852,7 +850,8 @@
   ],
   "BaseCommitAmendAction": [
     "--no-verify",
-    "--include-job-results"
+    "--include-job-results",
+    "--prefer-pull-request"
   ],
   "HardSubmitOldShipItReviews": [
     "--old-ship-it"
@@ -967,6 +966,9 @@
     "--username",
     "--trivial-reviewer-label",
     "--search-by-usernames-only"
+  ],
+  "ReadLastCommit": [
+    "--prefer-pull-request"
   ],
   "PushToTrackingBranch": [
     "--tracking-branch",

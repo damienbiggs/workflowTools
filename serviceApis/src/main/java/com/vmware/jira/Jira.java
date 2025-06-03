@@ -48,6 +48,7 @@ import static com.vmware.config.jira.IssueTypeDefinition.Bug;
 import static com.vmware.config.jira.IssueTypeDefinition.Feature;
 import static com.vmware.config.jira.IssueTypeDefinition.Improvement;
 import static com.vmware.config.jira.IssueTypeDefinition.TechComm;
+import static com.vmware.jira.domain.IssueStatusDefinition.WaitingForCodeReview;
 
 public class Jira extends AbstractRestService {
 
@@ -115,7 +116,7 @@ public class Jira extends AbstractRestService {
     }
 
     public IssuesResponse getOpenTasksForUser() {
-        String allowedStatuses = generateNumericalEnumListAsInts(Open, Reopened, InProgress, InReview);
+        String allowedStatuses = generateNumericalEnumListAsInts(Open, Reopened, InProgress, InReview, WaitingForCodeReview);
         String issueTypesToGet = generateNumericalEnumListAsInts(Improvement, Feature, Bug, TechComm);
 
         String jql = String.format("issuetype in (%s,subTaskIssueTypes()) AND status in (%s) AND assignee=%s",

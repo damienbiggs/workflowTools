@@ -113,7 +113,7 @@ public class ServiceLocator {
         if (buildweb == null) {
             BuildwebConfig buildwebConfig = config.buildwebConfig;
             buildweb = new Buildweb(buildwebConfig.buildwebUrl, buildwebConfig.buildwebApiUrl,
-                    buildwebConfig.buildwebLogFileName, buildwebConfig.buildwebBuildMachineHostNameSuffix, determineUsername(buildwebConfig.buildwebUsername));
+                    buildwebConfig.buildwebLogFileName, buildwebConfig.buildwebBuildMachineHostNameSuffix, buildwebConfig.buildwebBuildMachineIpPattern, determineUsername(buildwebConfig.buildwebUsername));
         }
         return buildweb;
     }

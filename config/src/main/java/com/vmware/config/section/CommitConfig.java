@@ -54,9 +54,6 @@ public class CommitConfig {
     @ConfigurableProperty(help = "Label for review url")
     public String reviewUrlLabel;
 
-    @ConfigurableProperty(help = "Label for gitlab merge request")
-    public String mergeUrlLabel;
-
     @ConfigurableProperty(help = "Label for pipeline")
     public String pipelineLabel;
 
@@ -107,6 +104,9 @@ public class CommitConfig {
 
     @ConfigurableProperty(help = "Map of reviewer groups to select from for reviewed by section. E.g. create a techDebt group and list relevant reviewers")
     public LinkedHashMap<String, SortedSet<String>> reviewerGroups;
+
+    @ConfigurableProperty(commandLine = "--prefer-pull-request", help = "Read / update matching pull request over local commit if there is one present")
+    public boolean preferPullRequest;
 
     public CommitConfig() {}
 

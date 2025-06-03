@@ -16,8 +16,7 @@ public class SelectMatchingPullRequest extends BaseCommitUsingGithubAction {
     @Override
     public void process() {
         String sourceMergeBranch = determineSourceMergeBranch();
-        String targetMergeBranch = determineTargetMergeBranch();
-        log.info("Checking pull requests for request matching source branch {} and target branch {}", sourceMergeBranch, targetMergeBranch);
+        log.info("Checking pull requests for request matching source branch {}", sourceMergeBranch);
 
         Optional<PullRequest> matchingRequest = github.getPullRequestForSourceBranch(githubConfig.githubRepoOwnerName,
                 githubConfig.githubRepoName, sourceMergeBranch);

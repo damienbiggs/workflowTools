@@ -21,12 +21,12 @@ public class TestBuildwebApi extends BaseTests {
         String apiUrl = testProperties.getProperty("buildweb.api.url");
         String logFileName = testProperties.getProperty("buildweb.log.file.name");
         String username = testProperties.getProperty("buildweb.username");
-        buildweb = new Buildweb(url, apiUrl, logFileName, ".lvn.broadcom.net", username);
+        buildweb = new Buildweb(url, apiUrl, logFileName, ".lvn.broadcom.net", null, username);
     }
 
     @Test
     public void canGetSandboxBuild() {
-        BuildwebBuild build = buildweb.getSandboxBuild("13170580");
+        BuildwebBuild build = buildweb.getSandboxBuild("85595105");
         assertEquals(13170580, build.id);
         assertEquals(BuildStatus.SUCCESS, build.buildStatus);
     }

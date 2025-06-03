@@ -1,12 +1,12 @@
 package com.vmware.action.git;
 
-import com.vmware.action.base.BaseCommitUsingGitRepoAction;
+import com.vmware.action.base.BaseCommitAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.util.StringUtils;
 
 @ActionDescription("Performs a git push origin HEAD:topic/[username config property]/pre-commit.")
-public class PushToPrecommitBranch extends BaseCommitUsingGitRepoAction {
+public class PushToPrecommitBranch extends BaseCommitAction {
 
     public PushToPrecommitBranch(WorkflowConfig config) {
         super(config);

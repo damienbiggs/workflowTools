@@ -7,6 +7,7 @@ import com.vmware.github.domain.GraphqlResponse;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.github.domain.ReviewComment;
 import com.vmware.github.domain.ReviewThread;
+import com.vmware.util.StringUtils;
 import com.vmware.util.logging.Padder;
 
 import java.text.SimpleDateFormat;
@@ -30,38 +31,37 @@ public class DisplayOpenPullRequestReviewComments extends BaseCommitWithPullRequ
     public void process() {
         PullRequest pullRequest = draft.getGithubPullRequest();
         log.debug("Head sha for pull request {}", pullRequest.head.sha);
-        SimpleDateFormat formatter = new SimpleDateFormat("MMM dd hh:mm:ss");
-        Map<String, List<ReviewComment>> commentsPerAuthor = new LinkedHashMap<>();
         GraphqlResponse.PullRequestNode pullRequestNode = github.getPullRequestViaGraphql(pullRequest);
+        boolean firstThreadFound = false;
         for (ReviewThread reviewThread : pullRequestNode.reviewThreads.nodes) {
             if (reviewThread.isResolved) {
                 continue;
             }
 
-            Arrays.stream(reviewThread.comments.nodes)
-                    .forEach(comment -> commentsPerAuthor.computeIfAbsent(comment.author.login, key -> new ArrayList<>()).add(comment));
-        }
-
-        if (commentsPerAuthor.isEmpty()) {
-            log.info("No open comments found for pull request {}", pullRequest.number);
-            return;
-        }
-
-        for (String author : commentsPerAuthor.keySet()) {
-            Padder authorPadder = new Padder(author);
-            authorPadder.infoTitle();
-            List<ReviewComment> comments = commentsPerAuthor.get(author);
-            comments.sort(Comparator.comparing(ReviewComment::getCreatedAt));
-            for (ReviewComment comment : comments) {
-                Padder notePadder = new Padder(60, formatter.format(comment.createdAt));
-                notePadder.infoTitle();
-                log.info(comment.diffHunk);
-                log.info(comment.body);
-                notePadder.infoTitle();
+            if (!firstThreadFound) {
+                log.info("Displaying open pull request review comments for {}", pullRequest.htmlUrl);
             }
-            authorPadder.infoTitle();
+
+            String path = reviewThread.path.substring(reviewThread.path.length() > 60 ? reviewThread.path.length() - 60 : 0);
+            Padder threadPadder = new Padder(path);
+            threadPadder.infoTitle();
+            List<ReviewComment> comments = Arrays.asList(reviewThread.comments.nodes);
+            comments.sort(Comparator.comparing(ReviewComment::getCreatedAt));
+            if (!comments.isEmpty()) {
+                log.info(comments.get(0).diffHunk);
+                log.info("");
+            }
+            for (ReviewComment comment : comments) {
+                String authorInfo = comment.author.login + " - ";
+                String body = comment.body.replace("\n", "\n" + StringUtils.repeat(authorInfo.length(), " "));
+                log.info("{}{}", authorInfo, body);
+            }
+            threadPadder.infoTitle();
         }
-        log.info("Pull request approval status: {}", pullRequestNode.reviewDecision);
+
+        if (!firstThreadFound) {
+            log.info("No open pull request review comments for {}", pullRequest.htmlUrl);
+        }
     }
 
 }

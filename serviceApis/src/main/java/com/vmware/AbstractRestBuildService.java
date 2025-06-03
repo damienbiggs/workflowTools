@@ -4,8 +4,18 @@ import com.vmware.http.cookie.ApiAuthentication;
 import com.vmware.http.exception.NotFoundException;
 import com.vmware.jenkins.domain.JobBuild;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
+import com.vmware.util.StringUtils;
+import com.vmware.util.collection.CircularFifoQueue;
+import com.vmware.util.logging.LogLevel;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Queue;
+
+import static com.vmware.util.IOUtils.addLines;
 
 /**
  * Superclass for common functionality for rest build services such as Jenkins and Buildweb.
@@ -53,6 +63,14 @@ public abstract class AbstractRestBuildService extends AbstractRestService {
             isSuccess = isSuccess && jobBuild.status == BuildStatus.SUCCESS;
         }
         return isSuccess;
+    }
+
+    protected String tail(String url, int numberOfLinesToTail) {
+        log.debug("Tailing {} lines using url {}", numberOfLinesToTail, url);
+        Queue<String> lines = new CircularFifoQueue<>(numberOfLinesToTail);
+        String text = get(url, String.class);
+        lines.addAll(Arrays.asList(text.split("\n")));
+        return StringUtils.join(lines, "\n");
     }
 
     protected abstract BuildStatus getResultForBuild(String url);

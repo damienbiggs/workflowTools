@@ -1,6 +1,9 @@
 package com.vmware.action.base;
 
 import com.vmware.config.WorkflowConfig;
+import com.vmware.github.Github;
+import com.vmware.github.domain.PullRequest;
+import com.vmware.github.domain.PullRequestForUpdate;
 import com.vmware.util.logging.LogLevel;
 
 import java.util.Optional;
@@ -27,6 +30,25 @@ public abstract class BaseCommitAmendAction extends BaseCommitCreateAction {
         Optional<String> commitHasChangesReason = commitHasChanges();
         commitHasChangesReason.ifPresent(reason -> log.debug("Amending commit as {}", reason));
         super.skipActionIfTrue(!commitHasChangesReason.isPresent(), "no changes detected");
+    }
+
+    @Override
+    public void process() {
+        if (commitConfig.preferPullRequest && draft.getGithubPullRequest() != null) {
+            Github github = serviceLocator.getGithub();
+            PullRequest pullRequest = draft.getGithubPullRequest();
+            PullRequestForUpdate pullRequestForUpdate = pullRequest.pullRequestForUpdate();
+            String targetBranch = determineTargetMergeBranch();
+            if (!targetBranch.equals(pullRequest.base.ref)) {
+                pullRequestForUpdate.head = targetBranch;
+            }
+            log.info("Updating pull request {} since --prefer-pull-request is set to true", pullRequest.htmlUrl);
+            pullRequestForUpdate.title = draft.summary;
+            pullRequestForUpdate.body = draft.toText(commitConfig, false, commitConfig.includeJobResults);
+            PullRequest updatedPullRequest = github.updatePullRequest(pullRequestForUpdate);
+            draft.setGithubPullRequest(updatedPullRequest);
+        }
+        super.process();
     }
 
     @Override
