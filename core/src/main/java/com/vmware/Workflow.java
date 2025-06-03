@@ -178,20 +178,20 @@ public class Workflow {
                         throw new RuntimeException(e);
                     }
                     log.info("Downloading workflow release jar {} to {}", releaseURL, workflowJarFile.getPath());
-
                     try (ReadableByteChannel readableByteChannel = Channels.newChannel(releaseURL.openStream())) {
                         FileOutputStream fileOutputStream = new FileOutputStream(workflowJarFile);
                         fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
+                    log.info("Updated workflow jar. Please rerun workflow");
+                    System.exit(1);
                 } else {
-                    log.debug("Workflow jar {} is older than {} days. Last new version was on {} so updating is not needed", jarFilePath, daysOld, asset.updatedAt);
+                    log.debug("Workflow jar {} is older than {} days ({}). Last new version was on {} so updating is not needed", jarFilePath, daysOld,
+                            new Date(workflowJarFile.lastModified()), asset.updatedAt);
                     log.debug("Updated last modified time: {}", workflowJarFile.setLastModified(new Date().getTime()));
                 }
             }
-            log.warn("workflow jar {} is older than {} days and a new version exists. Auto updating.",
-                    jarFilePath, daysOld);
 
             return;
         } else if (!workflowJarFile.canWrite()) {
