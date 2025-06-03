@@ -1,6 +1,13 @@
 package com.vmware;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -136,7 +143,7 @@ public class Workflow {
     }
 
     private void checkForNewVersionOfWorkflowTools() {
-        if (config.scriptMode) {
+        if (config.scriptMode || config.disableAutoUpdate) {
             return;
         }
         log.debug("Update check interval: {}, github release path {}", config.updateCheckInterval, config.githubConfig.workflowGithubReleasePath);
@@ -157,9 +164,35 @@ public class Workflow {
 
         long daysOld = TimeUnit.MILLISECONDS.toDays(new Date().getTime() - workflowJarFile.lastModified());
 
-        if (!workflowJarFile.canWrite() && daysOld >= config.updateCheckInterval) {
-            log.warn("workflow jar {} is older than {} days and a new version exists. It is recommended to run workflow --update to update it",
+        if (daysOld >= config.updateCheckInterval) {
+            ReleaseAsset[] releaseAssets = getReleaseAssets();
+
+            if (releaseAssets != null && releaseAssets.length > 0) {
+                ReleaseAsset asset = releaseAssets[0];
+                if (asset.updatedAt.getTime() > workflowJarFile.lastModified()) {
+                    log.warn("Workflow jar {} is {} days old and a new version exists. Auto updating", workflowJarFile.getPath(), daysOld);
+                    URL releaseURL;
+                    try {
+                        releaseURL = URI.create(asset.browserDownloadUrl).toURL();
+                    } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                    log.info("Downloading workflow release jar {} to {}", releaseURL, workflowJarFile.getPath());
+
+                    try (ReadableByteChannel readableByteChannel = Channels.newChannel(releaseURL.openStream())) {
+                        FileOutputStream fileOutputStream = new FileOutputStream(workflowJarFile);
+                        fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    log.debug("Workflow jar {} is older than {} days. Last new version was on {} so updating is not needed", jarFilePath, daysOld, asset.updatedAt);
+                    log.debug("Updated last modified time: {}", workflowJarFile.setLastModified(new Date().getTime()));
+                }
+            }
+            log.warn("workflow jar {} is older than {} days and a new version exists. Auto updating.",
                     jarFilePath, daysOld);
+
             return;
         } else if (!workflowJarFile.canWrite()) {
             log.debug("Marking jar file {} as writable to prevent auto update as it is only {} days old", workflowJarFile.getAbsolutePath(), daysOld);
@@ -167,20 +200,7 @@ public class Workflow {
             return;
         }
         if (daysOld >= config.updateCheckInterval) {
-            ReleaseAsset[] releaseAssets = getReleaseAssets();
 
-            if (releaseAssets != null && releaseAssets.length > 0) {
-                ReleaseAsset asset = releaseAssets[0];
-                if (asset.updatedAt.getTime() > workflowJarFile.lastModified()) {
-                    log.warn("Workflow jar {} is {} days old and a new version exists. It is recommended to run workflow --update to update it",
-                            jarFilePath, daysOld);
-                    log.debug("Marking as read only so that it can be inferred that it needs to be updated");
-                    log.debug("Read only: " + workflowJarFile.setReadOnly());
-                } else {
-                    log.debug("Workflow jar {} is older than {} days. Last new version was on {} so updating is not needed", jarFilePath, daysOld, asset.updatedAt);
-                    log.debug("Updated last modified time: {}", workflowJarFile.setLastModified(new Date().getTime()));
-                }
-            }
         } else {
             log.debug("Not checking for update to workflow jar {} as it is only {} days old, checking after {} days", jarFilePath, daysOld, config.updateCheckInterval);
         }

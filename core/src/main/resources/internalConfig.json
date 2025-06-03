@@ -131,7 +131,7 @@
   ],
   "keepMissingCards": false,
   "updateCheckInterval": -1,
-  "workflowGithubReleasePath": "/repos/vmware/workflowTools/releases/43387689",
+  "workflowGithubReleasePath": "/repos/damienbiggs/workflowTools/releases/222782722",
   "httpServerPort": 9005,
   "httpServerStatusCode": 200,
   "workflows": {

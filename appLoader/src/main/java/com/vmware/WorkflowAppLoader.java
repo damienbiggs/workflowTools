@@ -92,7 +92,6 @@ public class WorkflowAppLoader {
             logger.finest(() -> String.format("Jar file %s already exists", releaseJar.getPath()));
             return;
         }
-        deleteOldReleasesIfNeeded();
         URL releaseURL = createReleaseUrl();
         logger.info("Downloading workflow release jar " + releaseURL.toString() + " to " + releaseJar.getPath());
 
@@ -103,23 +102,6 @@ public class WorkflowAppLoader {
             throw new RuntimeException(e);
         }
 
-    }
-
-    private void deleteOldReleasesIfNeeded() {
-        String deleteOldReleasesPattern = manifestAttributes.get("deleteOldReleaseJarPattern");
-        if (deleteOldReleasesPattern == null) {
-            logger.fine("Delete old releases pattern not set, skipping deletion of old releases");
-            return;
-        }
-        Pattern deleteJarPattern = Pattern.compile(deleteOldReleasesPattern);
-        File[] matchingReleases = new File(releaseDirectory).listFiles(file -> deleteJarPattern.matcher(file.getName()).matches());
-        if (matchingReleases == null) {
-            return;
-        }
-        Arrays.stream(matchingReleases).forEach(release -> {
-            logger.info("Deleting old release " + release.getPath());
-            release.delete();
-        });
     }
 
     private URL createReleaseUrl() {

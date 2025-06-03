@@ -202,6 +202,9 @@ public class WorkflowConfig {
     @ConfigurableProperty(commandLine = "--update-check-interval", help = "Check for new version of workflow tools after specified amount of days")
     public int updateCheckInterval;
 
+    @ConfigurableProperty(commandLine = "--disable-auto-update", help = "Disable auto update of workflow tools")
+    public boolean disableAutoUpdate;
+
     @Expose(serialize = false, deserialize = false)
     public ReplacementVariables replacementVariables = new ReplacementVariables(this);
 
