@@ -4,10 +4,10 @@
     edges {
       node {
         ... on User {
+          id
           login
           name
           location
-          email
           company
           organization(login:"${companyName}") {
              login

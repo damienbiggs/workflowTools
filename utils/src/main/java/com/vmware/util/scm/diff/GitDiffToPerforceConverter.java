@@ -2,16 +2,13 @@ package com.vmware.util.scm.diff;
 
 import com.vmware.util.scm.FileChange;
 import com.vmware.util.scm.FileChangeType;
-import com.vmware.util.scm.Git;
 import com.vmware.util.scm.Perforce;
-import com.vmware.util.IOUtils;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -238,11 +235,4 @@ public class GitDiffToPerforceConverter implements DiffConverter {
         return "+++ [!!" + addDiffFile + "!!]\t" + diffDate;
     }
 
-    public static void main(String[] args) {
-        String diff = IOUtils.read(new File("/Users/dbiggs/Downloads/rb1030085.patch"));
-        PerforceDiffToGitConverter converter = new PerforceDiffToGitConverter(new Git());
-        String diffText = converter.convert(diff);
-        System.out.println(diffText);
-
-    }
 }

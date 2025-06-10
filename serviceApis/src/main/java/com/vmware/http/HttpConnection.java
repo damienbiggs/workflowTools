@@ -403,8 +403,4 @@ public class HttpConnection {
         ExceptionChecker.throwExceptionIfStatusIsNotValid(currentUrl, responseCode, methodType.name(), responseText);
         return responseText;
     }
-
-    public Gson getGson() {
-        return gson;
-    }
 }

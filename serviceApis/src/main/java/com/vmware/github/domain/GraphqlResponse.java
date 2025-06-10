@@ -95,11 +95,11 @@ public class GraphqlResponse {
         public ResponseData deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
             JsonObject dataObject = jsonElement.getAsJsonObject();
             ResponseData data = new ResponseData();
-            Optional<MutationName> mutationName = Arrays.stream(MutationName.values()).filter(value -> dataObject.has(value.name())).findFirst();
-            if (mutationName.isPresent() && !dataObject.get(mutationName.get().name()).isJsonNull()) {
-                JsonObject mutationResponse = dataObject.getAsJsonObject(mutationName.get().name());
-                data.mutatedPullRequest = jsonDeserializationContext.deserialize(mutationResponse, MutatedPullRequest.class);
-            }
+            Optional<JsonElement> mutationResult = Arrays.stream(MutationName.values())
+                    .filter(value -> dataObject.has(value.name()))
+                    .map(value -> dataObject.get(value.name())).findFirst();
+            mutationResult.ifPresent(element ->
+                    data.mutatedPullRequest = jsonDeserializationContext.deserialize(element, MutatedPullRequest.class));
 
             data.user = jsonDeserializationContext.deserialize(dataObject.get("user"), User.class);
             data.repository = jsonDeserializationContext.deserialize(dataObject.get("repository"), Repository.class);

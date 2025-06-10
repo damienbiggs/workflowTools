@@ -31,9 +31,11 @@ public class CheckStatusOfPullRequest extends BaseCommitWithPullRequestAction {
         List<Commit.StatusNode> nodes = pullRequest.checks();
         DynamicLogger logger = new DynamicLogger(log);
         nodes.forEach(node -> {
-            String targetUrl = node.targetUrl != null ? "(" + node.targetUrl + ")" : " check";
+            String targetUrl = node.targetUrl != null ? "(" + node.targetUrl + ")" : "";
+            String description = node.summary != null ? node.summary :
+                    node.status != null ? node.status.name() : Commit.Status.PENDING.name();
             LogLevel level = node.status == Commit.Status.SUCCESS ? LogLevel.DEBUG : LogLevel.INFO;
-            logger.log(level, "{}{} - {}", node.name, targetUrl, node.status != null ? node.status : Commit.Status.PENDING);
+            logger.log(level, "{}{} - {}", node.fullName(), targetUrl, description);
         });
 
         log.info("Pull request approval status: {}", pullRequest.reviewDecision);

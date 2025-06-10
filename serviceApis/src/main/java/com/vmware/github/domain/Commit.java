@@ -28,14 +28,21 @@ public class Commit {
 
     public class StatusNode {
         public String name;
-        public String description;
+        public String summary;
         public Status status;
-        @SerializedName("createdAt")
         public Date createdAt;
-        @SerializedName("completedAt")
         public Date completedAt;
-        @SerializedName("targetUrl")
         public String targetUrl;
+        public CheckSuite checkSuite;
+
+
+        public String fullName() {
+            if (checkSuite != null && checkSuite.workflowRun != null && checkSuite.workflowRun.workflow != null) {
+                return checkSuite.workflowRun.workflow.name + " / " + name;
+            } else {
+                return name;
+            }
+        }
 
         public Date getCreatedAt() {
             return createdAt;
@@ -55,6 +62,18 @@ public class Commit {
     public static class CommitRepository {
         public String name;
         public User owner;
+    }
+
+    public static class CheckSuite {
+        public WorkflowRun workflowRun;
+    }
+
+    public static class WorkflowRun {
+        public Workflow workflow;
+    }
+
+    public static class Workflow {
+        public String name;
     }
 
     public enum Status {

@@ -72,15 +72,22 @@
                               nodes {
                                   ... on CheckRun {
                                       name
-                                      description: summary
+                                      summary
                                       status: conclusion
                                       completedAt
                                       createdAt: startedAt
+                                      checkSuite {
+                                         workflowRun {
+                                            workflow {
+                                               name
+                                            }
+                                         }
+                                      }
                                   }
                                   ... on StatusContext {
                                       name: context
                                       createdAt
-                                      description
+                                      summary: description
                                       status: state
                                       targetUrl
                                   }
