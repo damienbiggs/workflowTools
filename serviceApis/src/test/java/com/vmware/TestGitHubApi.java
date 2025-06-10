@@ -4,14 +4,11 @@ import com.vmware.github.Github;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.github.domain.ReleaseAsset;
 import com.vmware.github.domain.User;
-import com.vmware.xmlrpc.MapObjectConverter;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
