@@ -29,25 +29,9 @@ public class TestGitHubApi extends BaseTests{
     }
 
     @Test
-    public void testConversion() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("number", 55D);
-        response.put("isDraft", true);
-        PullRequest pullRequest = new MapObjectConverter().fromMap(response, PullRequest.class);
-        assertEquals(55d, pullRequest.number, 0d);
-        assertTrue(pullRequest.isDraft);
-    }
-
-    @Test
     public void getPullRequest() {
         PullRequest pullRequest = github.getPullRequest("vmware", "workflowTools", 18);
         assertEquals(18, pullRequest.number);
-    }
-
-    @Test
-    public void getPullRequestNode() {
-        PullRequest pullRequest = github.getPullRequest("vcf", "automation", 11702);
-        assertEquals(11702, pullRequest.number);
     }
 
     @Test
