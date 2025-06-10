@@ -209,7 +209,7 @@
       "AmendCommit"
     ],
     "setCommitDetailsFromPullRequest": [
-      "selectPullRequest&&--fail-if-no-request-found&&--prefer-pull-request=false",
+      "selectPullRequest&&--fail-if-no-request-found",
       "SetCommitDetailsFromPullRequest",
       "DisplayCommit",
       "ExitIfConfirmationNotGiven",
@@ -570,7 +570,7 @@
       "DisplayBuildOutputForBuildwebBuilds",
       "CheckCommitForCheckstyleErrors",
       "DisplayOpenPullRequestReviewComments",
-      "CheckStatusOfPullRequestApprovals"
+      "CheckStatusOfPullRequest"
     ],
     "checkSandboxStatus": [
       "ReadLastCommit",
@@ -820,7 +820,7 @@
       "CopyRequestUrlToClipboard"
     ],
     "updatePullRequestDetails" : [
-      "selectPullRequest&&--fail-if-no-request-found&&--first-local-commit",
+      "selectPullRequest&&--fail-if-no-request-found&&--prefer-pull-request=false",
       "UpdatePullRequestDetails",
       "CopyRequestUrlToClipboard"
     ],
@@ -830,7 +830,7 @@
       "DeleteRequestBranch"
     ],
     "selectPullRequest": [
-      "ReadLastCommit",
+      "ReadLastCommit&&--prefer-pull-request=false",
       "SelectMatchingPullRequest"
     ],    
     "reopenAndResolveIssues": [

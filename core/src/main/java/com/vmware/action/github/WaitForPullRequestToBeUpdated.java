@@ -3,7 +3,6 @@ package com.vmware.action.github;
 import com.vmware.action.base.BaseCommitWithPullRequestAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.github.domain.CommitRef;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.util.ThreadUtils;
 
@@ -20,8 +19,8 @@ public class WaitForPullRequestToBeUpdated extends BaseCommitWithPullRequestActi
     public void process() {
         String headRef = git.revParse("HEAD");
         String currentBranch = git.currentBranch();
-        CommitRef headCommitRef = draft.getGithubPullRequest().head;
-        if (headCommitRef != null && headRef.equals(headCommitRef.sha)) {
+        String headCommitSha = draft.getGithubPullRequest().headRefOid;
+        if (headRef.equals(headCommitSha)) {
             log.debug("Pull request {} commit hash already matches branch {} ref {}", draft.mergeRequestId(), currentBranch, headRef);
             return;
         }
@@ -29,8 +28,8 @@ public class WaitForPullRequestToBeUpdated extends BaseCommitWithPullRequestActi
         Callable<Boolean> commitHashCheck = () -> {
             PullRequest pullRequest = github.getPullRequest(githubConfig.githubRepoOwnerName, githubConfig.githubRepoName, draft.mergeRequestId());
             draft.setGithubPullRequest(pullRequest);
-            log.info("Current pull request commit hash " + pullRequest.head.sha);
-            return headRef.equals(pullRequest.head.sha);
+            log.info("Current pull request commit hash " + pullRequest.headRefOid);
+            return headRef.equals(pullRequest.headRefOid);
         };
 
         ThreadUtils.waitForCallable(commitHashCheck, config.waitTimeForBlockingWorkflowAction, 3,

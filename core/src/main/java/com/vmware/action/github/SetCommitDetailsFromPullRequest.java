@@ -1,17 +1,14 @@
 package com.vmware.action.github;
 
-import com.vmware.action.base.BaseCommitAction;
 import com.vmware.action.base.BaseCommitWithPullRequestAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.jenkins.domain.JobBuild;
 import com.vmware.reviewboard.ReviewBoard;
-import com.vmware.reviewboard.domain.ReviewRequest;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;
-import com.vmware.util.input.InputUtils;
 
 import java.util.List;
 import java.util.Optional;

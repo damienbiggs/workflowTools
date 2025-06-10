@@ -1,8 +1,10 @@
 package com.vmware.github.domain;
 
 public class PullMergeRequest {
-    public String commitTitle;
-    public String commitMessage;
-    public String sha;
+    public String pullRequestId;
+    public String commitHeadline;
+    public String commitBody;
+    public String expectedHeadOid;
     public String mergeMethod;
+    public String updateMethod;
 }

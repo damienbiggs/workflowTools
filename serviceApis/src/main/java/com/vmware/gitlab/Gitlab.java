@@ -35,7 +35,7 @@ public class Gitlab extends AbstractRestService {
         super(baseUrl, "api/v4", ApiAuthentication.gitlab_token, NULL_USERNAME);
         this.connection = new HttpConnection(RequestBodyHandling.AsStringJsonEntity,
                 new ConfiguredGsonBuilder(TimeZone.getDefault(), "yyyy-MM-dd'T'HH:mm:ss.SSS")
-                        .namingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).build());
+                        .namingStrategy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).build());
         String apiToken = readExistingApiToken(ApiAuthentication.gitlab_token);
         if (StringUtils.isNotBlank(apiToken)) {
             connection.addStatefulParam(new RequestHeader(PRIVATE_TOKEN_HEADER, apiToken));

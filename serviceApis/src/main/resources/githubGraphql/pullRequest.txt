@@ -1,0 +1,5 @@
+query getPullRequest {
+  repository(owner: "${repoOwnerName}", name: "${repoName}") {
+    pullRequest(number: ${pullRequestNumber}) ${pullRequestResponse}
+  }
+}

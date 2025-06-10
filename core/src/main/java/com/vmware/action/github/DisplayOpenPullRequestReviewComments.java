@@ -3,7 +3,6 @@ package com.vmware.action.github;
 import com.vmware.action.base.BaseCommitWithPullRequestAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.github.domain.GraphqlResponse;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.github.domain.ReviewComment;
 import com.vmware.github.domain.ReviewThread;
@@ -27,16 +26,16 @@ public class DisplayOpenPullRequestReviewComments extends BaseCommitWithPullRequ
     @Override
     public void process() {
         PullRequest pullRequest = draft.getGithubPullRequest();
-        log.debug("Head sha for pull request {}", pullRequest.head.sha);
-        GraphqlResponse.PullRequestNode pullRequestNode = github.getPullRequestViaGraphql(pullRequest);
+        log.debug("Head sha for pull request {}", pullRequest.headRefOid);
         boolean firstThreadFound = false;
-        for (ReviewThread reviewThread : pullRequestNode.reviewThreads.nodes) {
+        for (ReviewThread reviewThread : pullRequest.reviewThreads.nodes) {
             if (reviewThread.isResolved) {
                 continue;
             }
 
             if (!firstThreadFound) {
-                log.info("Displaying open pull request review comments for {}", pullRequest.htmlUrl);
+                log.info("Displaying open pull request review comments for {}", pullRequest.url);
+                firstThreadFound = true;
             }
 
             String path = reviewThread.path.substring(reviewThread.path.length() > 60 ? reviewThread.path.length() - 60 : 0);
@@ -64,7 +63,7 @@ public class DisplayOpenPullRequestReviewComments extends BaseCommitWithPullRequ
         }
 
         if (!firstThreadFound) {
-            log.info("No open pull request review comments for {}", pullRequest.htmlUrl);
+            log.info("No open pull request review comments for {}", pullRequest.url);
         }
     }
 

@@ -734,9 +734,6 @@
     "--include-issue-types",
     "--include-all-issue-types"
   ],
-  "BaseCommitUsingGithubAction": [
-    "--trivial-reviewer-label"
-  ],
   "SelectVappIfNeeded": [
     "--use-vapp-json"
   ],

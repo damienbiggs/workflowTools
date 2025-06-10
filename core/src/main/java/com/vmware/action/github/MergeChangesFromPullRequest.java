@@ -14,8 +14,8 @@ public class MergeChangesFromPullRequest extends BaseCommitWithPullRequestAction
     @Override
     public void process() {
         PullRequest pullRequest = draft.getGithubPullRequest();
-        log.info("Merging latest changes from {}", pullRequest.head.ref);
+        log.info("Merging latest changes from {}", pullRequest.headRefName);
         git.fetch();
-        git.merge(gitRepoConfig.defaultGitRemote + "/" + pullRequest.head.ref);
+        git.merge(gitRepoConfig.defaultGitRemote + "/" + pullRequest.headRefName);
     }
 }

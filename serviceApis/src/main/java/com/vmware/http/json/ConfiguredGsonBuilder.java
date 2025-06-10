@@ -1,6 +1,7 @@
 package com.vmware.http.json;
 
 import com.google.gson.FieldNamingPolicy;
+import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.vmware.config.WorkflowConfig;
@@ -9,6 +10,7 @@ import com.vmware.config.jira.IssueTypeDefinition;
 import com.vmware.jira.domain.IssueResolutionDefinition;
 import com.vmware.jira.domain.IssueStatusDefinition;
 
+import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Map;
 import java.util.TimeZone;
@@ -18,6 +20,7 @@ import java.util.TimeZone;
  */
 public class ConfiguredGsonBuilder {
 
+    private final Map<String, String> customFieldNames;
     private GsonBuilder builder;
 
     public ConfiguredGsonBuilder() {
@@ -44,9 +47,7 @@ public class ConfiguredGsonBuilder {
                 .registerTypeAdapter(IssueResolutionDefinition.class, new ComplexEnumMapper())
                 .registerTypeAdapter(IssueTypeDefinition.class, new ComplexEnumMapper())
                 .registerTypeAdapter(WorkflowConfig.class, new WorkflowConfigMapper());
-        if (customFieldNames != null) {
-            this.builder.setFieldNamingStrategy(new RuntimeFieldNamingStrategy(customFieldNames));
-        }
+        this.customFieldNames = customFieldNames;
     }
 
     public ConfiguredGsonBuilder setPrettyPrinting() {
@@ -59,8 +60,12 @@ public class ConfiguredGsonBuilder {
         return this;
     }
 
-    public ConfiguredGsonBuilder namingPolicy(FieldNamingPolicy namingPolicy) {
-        builder.setFieldNamingPolicy(namingPolicy);
+    public ConfiguredGsonBuilder namingStrategy(FieldNamingPolicy namingPolicy) {
+        if (customFieldNames != null) {
+            builder.setFieldNamingStrategy(new RuntimeFieldNamingStrategy(namingPolicy, customFieldNames));
+        } else {
+            builder.setFieldNamingStrategy(new AnnotationFieldNamingStrategy(namingPolicy));
+        }
         return this;
     }
 

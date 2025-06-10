@@ -25,7 +25,7 @@ public class ReadLastCommit extends BaseCommitAction {
         Optional<PullRequest> matchingPullRequest = getMatchingPullRequestIfNeeded();
         if (matchingPullRequest.isPresent()) {
             PullRequest request = matchingPullRequest.get();
-            log.info("Reading commit details from pull request {}", request.htmlUrl);
+            log.info("Reading commit details from pull request {}", request.url);
             draft.fillValuesFromCommitText(request.asText(), commitConfig);
             draft.setGithubPullRequest(request);
         } else {

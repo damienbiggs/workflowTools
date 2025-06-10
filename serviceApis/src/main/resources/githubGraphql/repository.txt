@@ -1,0 +1,5 @@
+query getRepoInfo {
+  repository(owner: "${repoOwnerName}", name: "${repoName}") {
+      id
+  }
+}

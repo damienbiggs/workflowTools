@@ -16,7 +16,7 @@ public class Slack extends AbstractRestService {
     public Slack(String url, String username) {
         super(url, "/api", ApiAuthentication.none, username);
         this.connection = new HttpConnection(RequestBodyHandling.AsStringJsonEntity,
-                new ConfiguredGsonBuilder().namingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).build());
+                new ConfiguredGsonBuilder().namingStrategy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).build());
         this.connection.addStatefulParam(RequestHeader.aBearerAuthHeader(""));
     }
 

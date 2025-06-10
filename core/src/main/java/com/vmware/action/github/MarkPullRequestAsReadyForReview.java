@@ -14,7 +14,7 @@ public class MarkPullRequestAsReadyForReview extends BaseCommitWithPullRequestAc
     @Override
     public void process() {
         PullRequest pullRequest = draft.getGithubPullRequest();
-        skipActionIfTrue(!pullRequest.draft, "pull request is not a draft");
+        skipActionIfTrue(!pullRequest.isDraft, "pull request is not a draft");
         github.markPullRequestAsReadyForReview(pullRequest);
     }
 }

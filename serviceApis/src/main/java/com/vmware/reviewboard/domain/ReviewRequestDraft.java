@@ -563,7 +563,7 @@ public class ReviewRequestDraft extends BaseEntity {
 
     public void setGithubPullRequest(PullRequest githubPullRequest) {
         this.githubPullRequest = githubPullRequest;
-        this.requestUrl = githubPullRequest.htmlUrl;
+        this.requestUrl = githubPullRequest.url;
     }
 
     public Integer mergeRequestId() {

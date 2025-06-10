@@ -17,16 +17,16 @@ public class MergePullRequest extends BaseCommitWithPullRequestAction {
         log.info("Merging pull request {}", draft.requestUrl);
         PullRequest pullRequest = draft.getGithubPullRequest();
 
-        String upstreamRef = gitRepoConfig.defaultGitRemote + "/" + pullRequest.base.ref;
+        String upstreamRef = gitRepoConfig.defaultGitRemote + "/" + pullRequest.baseRefName;
         int commitCount = git.getCommitCountSinceRef(upstreamRef);
         if (commitCount != 1) {
             throw new FatalException("Pull request {} has {} commits since {}. Please merge via UI. Can only merge via workflow tools if there is one commit",
                     pullRequest.number, commitCount, upstreamRef);
         }
         String headRef = git.revParse("head");
-        if (!headRef.equals(pullRequest.head.sha)) {
+        if (!headRef.equals(pullRequest.headRefOid)) {
             throw new FatalException("Cannot merge pull request {} as current head ref {} does not match pull request head ref {}",
-                    pullRequest.number, headRef, pullRequest.head.sha);
+                    pullRequest.number, headRef, pullRequest.headRefOid);
         }
         github.mergePullRequest(pullRequest, githubConfig.mergeMethod, draft.summary, draft.toText(commitConfig, false, false));
     }

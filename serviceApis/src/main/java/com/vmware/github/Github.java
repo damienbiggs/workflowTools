@@ -2,53 +2,59 @@ package com.vmware.github;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import com.google.gson.FieldNamingPolicy;
 import com.vmware.AbstractRestService;
-import com.vmware.AutocompleteUser;
 import com.vmware.github.domain.GraphqlRequest;
-import com.vmware.github.domain.PullMergeResult;
-import com.vmware.github.domain.PullRequestForUpdate;
+import com.vmware.github.domain.MutationName;
 import com.vmware.github.domain.PullMergeRequest;
 import com.vmware.github.domain.PullRequest;
-import com.vmware.github.domain.PullRequestUpdateBranchRequest;
-import com.vmware.github.domain.PullRequestUpdateBranchResponse;
 import com.vmware.github.domain.ReleaseAsset;
 import com.vmware.github.domain.GraphqlResponse;
 import com.vmware.github.domain.RequestedReviewers;
-import com.vmware.github.domain.Team;
 import com.vmware.github.domain.User;
 import com.vmware.http.HttpConnection;
 import com.vmware.http.cookie.ApiAuthentication;
+import com.vmware.http.graphql.InputSerializer;
 import com.vmware.http.json.ConfiguredGsonBuilder;
 import com.vmware.http.request.RequestHeader;
-import com.vmware.http.request.UrlParam;
 import com.vmware.http.request.body.RequestBodyHandling;
 import com.vmware.util.ClasspathResource;
 import com.vmware.util.StringUtils;
 import com.vmware.util.UrlUtils;
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.input.InputUtils;
-import com.vmware.xmlrpc.MapObjectConverter;
+
+import static com.vmware.github.domain.MutationName.closePullRequest;
+import static com.vmware.github.domain.MutationName.convertPullRequestToDraft;
+import static com.vmware.github.domain.MutationName.createPullRequest;
+import static com.vmware.github.domain.MutationName.markPullRequestReadyForReview;
+import static com.vmware.github.domain.MutationName.mergePullRequest;
+import static com.vmware.github.domain.MutationName.requestReviews;
+import static com.vmware.github.domain.MutationName.updatePullRequest;
 
 public class Github extends AbstractRestService {
 
     private final String graphqlUrl;
     private final Map<String, User> loginIdToUserMap = new HashMap<>();
+    private final InputSerializer inputSerializer = new InputSerializer();
 
     public Github(String baseUrl, String graphqlUrl) {
         super(baseUrl, "", ApiAuthentication.github_token, NULL_USERNAME);
         this.graphqlUrl = graphqlUrl;
         this.connection = new HttpConnection(RequestBodyHandling.AsStringJsonEntity,
                 new ConfiguredGsonBuilder(TimeZone.getDefault(), "yyyy-MM-dd'T'HH:mm:ss")
-                        .namingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).build());
+                        .namingStrategy(FieldNamingPolicy.IDENTITY)
+                        .build());
 
         String apiToken = readExistingApiToken(ApiAuthentication.github_token);
         if (StringUtils.isNotBlank(apiToken)) {
@@ -57,11 +63,8 @@ public class Github extends AbstractRestService {
     }
 
     public List<User> searchUsers(String companyName, String query) {
-        String searchUsersQuery = new ClasspathResource("/githubSearchUsersGraphql.txt", this.getClass()).getText();
-        GraphqlRequest request = new GraphqlRequest();
-
-        request.query = searchUsersQuery.replace("${query}", query).replace("${companyName}", companyName);
-        GraphqlResponse response = post(graphqlUrl, GraphqlResponse.class, request);
+        GraphqlResponse response = postGraphql("/githubGraphql/searchUsers.txt",
+                "query=" + query, "companyName=" + companyName);
         return response.data.search.usersForCompany(companyName);
     }
 
@@ -69,69 +72,69 @@ public class Github extends AbstractRestService {
         if (loginIdToUserMap.containsKey(login)) {
             return loginIdToUserMap.get(login);
         }
-        String userQuery = new ClasspathResource("/githubUserDetailsGraphql.txt", this.getClass()).getText();
-        GraphqlRequest request = new GraphqlRequest();
-
-        request.query = userQuery.replace("${loginId}", login);
-        GraphqlResponse response = post(graphqlUrl, GraphqlResponse.class, request);
+        GraphqlResponse response = postGraphql("/githubGraphql/userDetails.txt", "loginId=" + login);
         loginIdToUserMap.put(login, response.data.user);
         return response.data.user;
     }
 
-    public PullRequest createPullRequest(PullRequestForUpdate pullRequest) {
+    public PullRequest createPullRequest(String repoOwnerName, String repoName, PullRequest pullRequest) {
         setupAuthenticatedConnection();
-        return post(pullRequestsUrl(pullRequest.repoOwner, pullRequest.repoName), PullRequest.class, pullRequest);
+        GraphqlResponse repoResponse = postGraphql("/githubGraphql/repository.txt", "repoOwnerName=" + repoOwnerName, "repoName=" + repoName);
+        pullRequest.repositoryId = repoResponse.data.repository.id;
+
+        String input = inputSerializer.serialize(pullRequest);
+        String pullRequestResponse = new ClasspathResource("/githubGraphql/fullPullRequestResponse.txt", this.getClass()).getText();
+        GraphqlResponse response = postGraphql("/githubGraphql/createPullRequest.txt",
+                "mutationName=" + createPullRequest, "input=" + input, "pullRequestResponse=" + pullRequestResponse);
+        return response.data.mutatedPullRequest.pullRequest;
     }
 
-    public PullRequestUpdateBranchResponse updatePullRequestBranch(PullRequest pullRequest) {
-        PullRequestUpdateBranchRequest request = new PullRequestUpdateBranchRequest();
-        request.expectedHeadSha = pullRequest.head.sha;
-        return put(pullRequestUrl(pullRequest) + "/update-branch", PullRequestUpdateBranchResponse.class, request);
+    public void updatePullRequestBranch(PullRequest pullRequest) {
+        PullMergeRequest updateRequest = new PullMergeRequest();
+        updateRequest.pullRequestId = pullRequest.id;
+        updateRequest.updateMethod = "REBASE";
+        mutatePullRequest(pullRequest.id, updatePullRequest, updateRequest);
     }
 
     public Optional<PullRequest> getPullRequestForSourceBranch(String ownerName, String repoName, String sourceBranch) {
-        PullRequest[] pullRequests = get(pullRequestsUrl(ownerName, repoName), PullRequest[].class,
-                new UrlParam("head", ownerName + ":" + sourceBranch));
-        return Optional.ofNullable(pullRequests.length > 0 ? pullRequests[0] : null);
+        String pullRequestResponse = new ClasspathResource("/githubGraphql/fullPullRequestResponse.txt", this.getClass()).getText();
+        GraphqlResponse repository = postGraphql("/githubGraphql/pullRequests.txt",
+                "repoOwnerName=" + ownerName, "repoName=" + repoName, "headRef=" + sourceBranch, "pullRequestResponse=" + pullRequestResponse);
+        return Arrays.stream(repository.data.repository.pullRequests.nodes).findFirst();
     }
 
-    public GraphqlResponse.PullRequestNode getPullRequestViaGraphql(PullRequest pullRequest) {
-        String reviewThreadsQuery = new ClasspathResource("/githubPullRequestGraphql.txt", this.getClass()).getText();
-        GraphqlRequest request = new GraphqlRequest();
-
-        request.query = reviewThreadsQuery.replace("${repoOwnerName}", pullRequest.repoOwnerName())
-                .replace("${repoName}", pullRequest.repoName()).replace("${pullRequestNumber}", String.valueOf(pullRequest.number));
-        GraphqlResponse repository = post(graphqlUrl, GraphqlResponse.class, request);
+    public PullRequest getPullRequest(String repoOwnerName, String repoName, long number) {
+        String pullRequestResponse = new ClasspathResource("/githubGraphql/fullPullRequestResponse.txt", this.getClass()).getText();
+        GraphqlResponse repository = postGraphql("/githubGraphql/pullRequest.txt",
+                "repoOwnerName=" + repoOwnerName, "repoName=" + repoName, "pullRequestNumber=" + number, "pullRequestResponse=" + pullRequestResponse);
         return repository.data.repository.pullRequest;
-    }
-
-
-    public PullRequest getPullRequest(String ownerName, String repoName, long pullNumber) {
-        return get(pullRequestUrl(ownerName, repoName, pullNumber), PullRequest.class);
     }
 
     public void mergePullRequest(PullRequest pullRequest, String mergeMethod, String commitTitle, String commitMessage) {
         setupAuthenticatedConnection();
         PullMergeRequest pullMergeRequest = new PullMergeRequest();
+        pullMergeRequest.pullRequestId = pullRequest.id;
         pullMergeRequest.mergeMethod = mergeMethod;
-        pullMergeRequest.commitTitle = commitTitle;
-        pullMergeRequest.commitMessage = commitMessage;
-        pullMergeRequest.sha = pullRequest.head.sha;
-        PullMergeResult result = put(pullRequestUrl(pullRequest) + "/merge", PullMergeResult.class, pullMergeRequest);
-        log.debug("Merge result: {} Sha: {}", result.message, result.sha);
-        if (!result.merged) {
-            throw new FatalException("Failed to merge pull request {}. Message: {}", pullRequest.number, result.message);
+        pullMergeRequest.commitHeadline = commitTitle;
+        pullMergeRequest.commitBody = commitMessage;
+        pullMergeRequest.expectedHeadOid = pullRequest.headRefOid;
+        PullRequest updatedPullRequest = mutatePullRequest(pullRequest.id, mergePullRequest, pullMergeRequest);
+        log.debug("Merge result: {} Sha: {}", updatedPullRequest.merged, updatedPullRequest.headRefOid);
+        if (!pullRequest.merged) {
+            throw new FatalException("Failed to merge pull request {}", pullRequest.number);
         }
     }
 
-    public PullRequest updatePullRequest(PullRequestForUpdate pullRequest) {
+    public void updatePullRequestDetails(PullRequest pullRequest) {
         setupAuthenticatedConnection();
-        return patch(pullRequestUrl(pullRequest.repoOwner, pullRequest.repoName, pullRequest.number), PullRequest.class,
-                pullRequest, Collections.emptyList());
+        PullRequest pullRequestForUpdate = new PullRequest(pullRequest.id);
+        pullRequestForUpdate.title = pullRequest.title;
+        pullRequestForUpdate.body = pullRequest.body;
+        mutatePullRequest(pullRequest.id, updatePullRequest, pullRequestForUpdate);
     }
 
     public void closePullRequest(PullRequest pullRequest) {
-        GraphqlResponse.PullRequestNode updatedPullRequest = executePullRequestGraphql(pullRequest, "closePullRequest");
+        PullRequest updatedPullRequest = mutatePullRequest(pullRequest, closePullRequest);
         if (!updatedPullRequest.closed) {
             throw new FatalException("Failed to close pull request {}", pullRequest.number);
         }
@@ -140,7 +143,7 @@ public class Github extends AbstractRestService {
     public void markPullRequestAsDraft(PullRequest pullRequest) {
         log.info("Marking pull request {} as a draft", pullRequest.number);
 
-        GraphqlResponse.PullRequestNode updatedPullRequest = executePullRequestGraphql(pullRequest, "convertPullRequestToDraft");
+        PullRequest updatedPullRequest = mutatePullRequest(pullRequest, convertPullRequestToDraft);
         if (!updatedPullRequest.isDraft) {
             throw new FatalException("Pull request {} draft status was not marked as a draft", updatedPullRequest.number);
         }
@@ -149,24 +152,15 @@ public class Github extends AbstractRestService {
     public void markPullRequestAsReadyForReview(PullRequest pullRequest) {
         log.info("Marking pull request {} as ready for review", pullRequest.number);
 
-        GraphqlResponse.PullRequestNode updatedPullRequest = executePullRequestGraphql(pullRequest, "markPullRequestReadyForReview");
+        PullRequest updatedPullRequest = mutatePullRequest(pullRequest, markPullRequestReadyForReview);
         if (updatedPullRequest.isDraft) {
             throw new FatalException("Pull request {} draft status was not marked as ready for review", updatedPullRequest.number);
         }
     }
 
-    public void addReviewersToPullRequest(PullRequest pullRequest, Set<AutocompleteUser> users) {
-        RequestedReviewers requestedReviewers = generateReviewers(users);
-        if (requestedReviewers.reviewers.length > 0 || requestedReviewers.teamReviewers.length > 0) {
-            post(pullRequestUrl(pullRequest) + "/requested_reviewers", String.class, requestedReviewers);
-        }
-    }
-
-    public void removeReviewersFromPullRequest(PullRequest pullRequest, Set<AutocompleteUser> users) {
-        RequestedReviewers requestedReviewers = generateReviewers(users);
-        if (requestedReviewers.reviewers.length > 0 || requestedReviewers.teamReviewers.length > 0) {
-            delete(pullRequestUrl(pullRequest) + "/requested_reviewers", requestedReviewers, Collections.emptyList());
-        }
+    public void updateReviewersForPullRequest(PullRequest pullRequest, List<User> users) {
+        RequestedReviewers requestedReviewers = new RequestedReviewers(users);
+        mutatePullRequest(pullRequest.id, requestReviews, requestedReviewers);
     }
 
     public ReleaseAsset[] getReleaseAssets(String releasePath) {
@@ -201,41 +195,39 @@ public class Github extends AbstractRestService {
         return super.determineApiTokenFile(apiAuthentication);
     }
 
-    private GraphqlResponse.PullRequestNode executePullRequestGraphql(PullRequest pullRequest, String mutationName) {
-        String graphqlText = new ClasspathResource("/githubMutatePullRequestGraphql.txt", this.getClass()).getText();
-        String query = graphqlText.replace("${mutationName}", mutationName).replace("${pullRequestId}", pullRequest.nodeId);
-        Map<String, Map<String, Map<String, Map<String, Object>>>> response = post(graphqlUrl, Map.class, new GraphqlRequest(query));
+    private PullRequest mutatePullRequest(PullRequest pullRequest, MutationName mutationName) {
+        return mutatePullRequest(pullRequest.id, mutationName, new PullRequest(pullRequest.id));
+    }
 
-        GraphqlResponse.PullRequestNode updatedPullRequest = new MapObjectConverter()
-                .fromMap(response.get("data").get(mutationName).get("pullRequest"), GraphqlResponse.PullRequestNode.class);
-        if (updatedPullRequest.number != pullRequest.number) {
+    private PullRequest mutatePullRequest(String pullRequestId, MutationName mutationName, Object inputObject) {
+        String input = inputSerializer.serialize(inputObject);
+
+        List<String> paramList = new ArrayList<>();
+        paramList.add("input=" + input);
+        paramList.add("mutationName=" + mutationName.name());
+        String fileName = "/githubGraphql/updatePullRequest.txt";
+
+        GraphqlResponse response = postGraphql(fileName, paramList.toArray(new String[0]));
+
+        PullRequest updatedPullRequest = response.data.mutatedPullRequest.pullRequest;
+        if (!Objects.equals(updatedPullRequest.id, pullRequestId)) {
             throw new FatalException("Wrong pull request {} was updated", updatedPullRequest.number);
         }
         return updatedPullRequest;
     }
 
-    private RequestedReviewers generateReviewers(Set<AutocompleteUser> users) {
-        RequestedReviewers requestedReviewers = new RequestedReviewers();
-        requestedReviewers.reviewers = users.stream().filter(user -> user instanceof User)
-                .map(user -> ((User) user).login).toArray(String[]::new);
-        requestedReviewers.teamReviewers = users.stream().filter(team -> team instanceof Team)
-                .map(team -> ((Team) team).slug).toArray(String[]::new);
-        return requestedReviewers;
-    }
+    private GraphqlResponse postGraphql(String fileName, String... params) {
+        Map<String, String> paramMap = Arrays.stream(params).map(param -> StringUtils.splitOnlyOnce(param, "="))
+                .collect(Collectors.toMap(param -> param[0], param -> param[1]));
+        String query = new ClasspathResource(fileName, this.getClass()).getText();
+        GraphqlRequest request = new GraphqlRequest(query);
+        paramMap.forEach((key, value) -> request.query = request.query.replace("${" + key + "}", value));
+        log.trace("Graphql request: {}", request.query);
 
-    private String pullRequestUrl(PullRequest pullRequest) {
-        return pullRequestUrl(pullRequest.repoOwnerName(), pullRequest.repoName(), pullRequest.number);
-    }
-
-    private String pullRequestUrl(String ownerName, String repoName, long pullNumber) {
-        return UrlUtils.addRelativePaths(repoUrl(ownerName, repoName), "pulls", pullNumber);
-    }
-
-    private String pullRequestsUrl(String ownerName, String repoName) {
-        return repoUrl(ownerName, repoName) + "/pulls";
-    }
-
-    private String repoUrl(String ownerName, String repoName) {
-        return UrlUtils.addRelativePaths(apiUrl, "repos", ownerName, repoName);
+        GraphqlResponse response = post(graphqlUrl, GraphqlResponse.class, request, new RequestHeader("Source", StringUtils.substringAfterLast(fileName, "/")));
+        if (response.errors != null && response.errors.length > 0) {
+            throw new FatalException("{}\nfailed with errors\n{} ", request.query, Arrays.toString(response.errors));
+        }
+        return response;
     }
 }

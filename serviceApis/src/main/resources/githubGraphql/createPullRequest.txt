@@ -1,0 +1,7 @@
+mutation create {
+    ${mutationName} (
+        input: ${input}
+    ) {
+        pullRequest${pullRequestResponse}
+    }
+}

@@ -1,0 +1,8 @@
+query getPullRequests {
+  repository(owner: "${repoOwnerName}", name: "${repoName}") {
+    pullRequests(states: OPEN, headRefName: "${headRef}", first: 5) {
+        totalCount,
+        nodes ${pullRequestResponse}
+     }
+  }
+}

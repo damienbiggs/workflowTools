@@ -3,8 +3,12 @@ package com.vmware.action.github;
 import com.vmware.action.base.BaseCommitUsingGithubAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.github.domain.PullRequestForUpdate;
 import com.vmware.github.domain.PullRequest;
+import com.vmware.github.domain.User;
+import com.vmware.util.StringUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ActionDescription("Creates a pull request in github, uses pull request branch format unless one specified.")
 public class CreatePullRequestIfNeeded extends BaseCommitUsingGithubAction {
@@ -20,24 +24,23 @@ public class CreatePullRequestIfNeeded extends BaseCommitUsingGithubAction {
 
     @Override
     public void process() {
-        PullRequestForUpdate pullRequest = new PullRequestForUpdate();
-        pullRequest.repoOwner = githubConfig.githubRepoOwnerName;
+        PullRequest pullRequest = new PullRequest();
         pullRequest.title = draft.summary;
         pullRequest.body = draft.toText(commitConfig, false, false);
-        pullRequest.repoName = githubConfig.githubRepoName;
-        pullRequest.head = determineSourceMergeBranch();
-        pullRequest.base = determineTargetMergeBranch();
+        pullRequest.headRefName = determineSourceMergeBranch();
+        pullRequest.baseRefName = determineTargetMergeBranch();
         pullRequest.draft = gitRepoConfig.markAsDraft;
 
-        log.info("Creating pull request with source branch {} and target branch {}", pullRequest.head, pullRequest.base);
-        PullRequest createdRequest = github.createPullRequest(pullRequest);
+        log.info("Creating pull request with source branch {} and target branch {}", pullRequest.headRefName, pullRequest.baseRefName);
+        PullRequest createdRequest = github.createPullRequest(githubConfig.githubRepoOwnerName, githubConfig.githubRepoName, pullRequest);
         draft.setGithubPullRequest(createdRequest);
         if (draft.hasReviewNumber()) {
             log.debug("Not setting reviewer ids as pull request is already associated with a reviewboard review");
         } else if (draft.hasReviewers()) {
-            github.addReviewersToPullRequest(createdRequest, determineReviewersToAdd(createdRequest));
-            github.removeReviewersFromPullRequest(createdRequest, determineReviewersToRemove(createdRequest));
+            List<String> usernames = StringUtils.splitAndTrim(draft.reviewedBy, ",");
+            List<User> users = usernames.stream().map(user -> github.getUser(user)).collect(Collectors.toList());
+            github.updateReviewersForPullRequest(createdRequest, users);
         }
-        log.info("Created pull request {}", createdRequest.htmlUrl);
+        log.info("Created pull request {}", createdRequest.url);
     }
 }

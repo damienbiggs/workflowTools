@@ -1,0 +1,93 @@
+        {
+          id,
+          number,
+          url,
+          reviewDecision,
+          baseRefName,
+          headRefName,
+          headRefOid,
+          title,
+          body,
+          isDraft,
+          reviews(first:30, states: APPROVED) {
+            nodes {
+              author {
+                login
+              }
+            }
+          },
+          reviewRequests(first: 30) {
+            nodes {
+              requestedReviewer {
+                ... on Team {
+                    combinedSlug
+                    id
+                    name
+                    slug
+                }
+                ... on User {
+                    id
+                    login
+                    name
+                }
+              }
+            }
+          }
+          reviewThreads(first: 30) {
+             nodes {
+                id,
+                __typename,
+                path,
+                comments (first: 30) {
+                  nodes {
+                      id,
+                      author {
+                        login
+                      },
+                      body,
+                      createdAt,
+                      diffHunk
+                  }
+                },
+                isResolved
+              }
+
+          },
+          commits(last: 1) {
+              nodes {
+                  commit {
+                      oid,
+                      repository {
+                          name
+                          owner {
+                              login
+                          }
+                      },
+                      statusCheckRollup {
+                          status: state
+                          contexts(first: 10) {
+                              checkRunCount
+                              statusContextCount
+                              totalCount
+                              nodes {
+                                  ... on CheckRun {
+                                      name
+                                      description: summary
+                                      status: conclusion
+                                      completedAt
+                                      createdAt: startedAt
+                                  }
+                                  ... on StatusContext {
+                                      name: context
+                                      createdAt
+                                      description
+                                      status: state
+                                      targetUrl
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+        }

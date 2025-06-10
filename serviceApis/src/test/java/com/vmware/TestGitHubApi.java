@@ -1,12 +1,11 @@
 package com.vmware;
 
 import com.vmware.github.Github;
-import com.vmware.github.domain.GraphqlResponse;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.github.domain.ReleaseAsset;
-import com.vmware.github.domain.ReviewThread;
 import com.vmware.github.domain.User;
 import com.vmware.xmlrpc.MapObjectConverter;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -18,44 +17,54 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class TestGitHubApi {
+public class TestGitHubApi extends BaseTests{
+
+    private Github github;
+
+    @Before
+    public void init() {
+        String url = testProperties.getProperty("github.url");
+        String graphql = testProperties.getProperty("github.graphql");
+        github = new Github(url, graphql);
+    }
 
     @Test
     public void testConversion() {
         Map<String, Object> response = new HashMap<>();
         response.put("number", 55D);
         response.put("isDraft", true);
-        GraphqlResponse.PullRequestNode pullRequestNode = new MapObjectConverter().fromMap(response, GraphqlResponse.PullRequestNode.class);
-        assertEquals(55d, pullRequestNode.number, 0d);
-        assertTrue(pullRequestNode.isDraft);
+        PullRequest pullRequest = new MapObjectConverter().fromMap(response, PullRequest.class);
+        assertEquals(55d, pullRequest.number, 0d);
+        assertTrue(pullRequest.isDraft);
     }
 
     @Test
     public void getPullRequest() {
-        Github github = new Github("https://api.github.com", "https://api.github.com/graphql");
         PullRequest pullRequest = github.getPullRequest("vmware", "workflowTools", 18);
         assertEquals(18, pullRequest.number);
     }
 
     @Test
+    public void getPullRequestNode() {
+        PullRequest pullRequest = github.getPullRequest("vcf", "automation", 11702);
+        assertEquals(11702, pullRequest.number);
+    }
+
+    @Test
     public void getReleaseAsset() throws IOException {
-        Github github = new Github("https://api.github.com", "https://api.github.com/graphql");
         ReleaseAsset[] assets = github.getReleaseAssets("repos/vmware/workflowTools/releases/43387689");
         assertEquals("workflowTools.jar", assets[0].name);
     }
 
     @Test
     public void getReviewThreads() {
-        Github github = new Github("https://api.github.com", "https://api.github.com/graphql");
         github.setupAuthenticatedConnection();
         PullRequest pullRequest = github.getPullRequest("vmware", "workflowTools", 12);
-        GraphqlResponse.PullRequestNode pullRequestNode = github.getPullRequestViaGraphql(pullRequest);
-        assertTrue(pullRequestNode.reviewThreads.nodes.length > 0);
+        assertTrue(pullRequest.reviewThreads.nodes.length > 0);
     }
 
     @Test
     public void searchUsers() {
-        Github github = new Github("https://api.github.com", "https://api.github.com/graphql");
         github.setupAuthenticatedConnection();
         List<User> users = github.searchUsers("VMware", "damienbigg");
         assertEquals(1, users.size());
