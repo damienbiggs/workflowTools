@@ -37,7 +37,7 @@ public abstract class BaseBatchCloseReviews extends BaseAction {
         Padder titlePadder = new Padder("Closing reviews with {} that are older than {} days", reason, String.valueOf(daysElapsedBeforeClose));
         titlePadder.infoTitle();
         if (openRequests.length == 0) {
-            log.info("No matching review requests for user " + config.username);
+            log.info("No matching review requests for user " + reviewBoard.getUsername());
             return;
         }
 

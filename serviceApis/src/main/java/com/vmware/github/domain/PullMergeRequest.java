@@ -5,6 +5,12 @@ public class PullMergeRequest {
     public String commitHeadline;
     public String commitBody;
     public String expectedHeadOid;
-    public String mergeMethod;
+    public MergeMethod mergeMethod;
     public String updateMethod;
+
+    public enum MergeMethod {
+        SQUASH,
+        MERGE,
+        REBASE
+    }
 }

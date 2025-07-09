@@ -6,7 +6,9 @@ import com.vmware.config.WorkflowConfig;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.util.logging.Padder;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ActionDescription("This MUST be used first to parse the last commit if intending to edit anything in the last commit.")
 public class ReadLastCommit extends BaseCommitAction {
@@ -21,12 +23,23 @@ public class ReadLastCommit extends BaseCommitAction {
     }
 
     @Override
+    public void checkIfActionShouldBeSkipped() {
+        super.checkIfActionShouldBeSkipped();
+        if (draft.getGithubPullRequest() != null && commitConfig.preferPullRequest) {
+            skipActionDueTo("draft is already associated with pull request " + draft.getGithubPullRequest().number);
+        }
+    }
+
+    @Override
     public void process() {
         Optional<PullRequest> matchingPullRequest = getMatchingPullRequestIfNeeded();
         if (matchingPullRequest.isPresent()) {
             PullRequest request = matchingPullRequest.get();
             log.info("Reading commit details from pull request {}", request.url);
             draft.fillValuesFromCommitText(request.asText(), commitConfig);
+            if (request.reviewRequests != null && request.reviewRequests.nodes != null) {
+                draft.reviewedBy = Arrays.stream(request.reviewRequests.nodes).map(node -> node.requestedReviewer.username()).collect(Collectors.joining(","));
+            }
             draft.setGithubPullRequest(request);
         } else {
             String commitText = readLastChange();

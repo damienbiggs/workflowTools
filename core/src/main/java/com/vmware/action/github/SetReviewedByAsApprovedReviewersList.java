@@ -6,6 +6,7 @@ import com.vmware.config.WorkflowConfig;
 import com.vmware.util.StringUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ActionDescription("Sets the reviewer list for the commit as the list of users who have approved the associated pull request.")
 public class SetReviewedByAsApprovedReviewersList extends BaseCommitWithPullRequestAction {
@@ -28,12 +29,12 @@ public class SetReviewedByAsApprovedReviewersList extends BaseCommitWithPullRequ
             return;
         }
 
-        List<String> approvers = draft.getGithubPullRequest().approvers();
+        String approvers = draft.getGithubPullRequest().approvers().stream().map(user -> user.login).collect(Collectors.joining(","));
         if (approvers.isEmpty()) {
             log.info("No approved reviews found for pull request");
             return;
         }
 
-        draft.reviewedBy = StringUtils.join(approvers);
+        draft.reviewedBy = approvers;
     }
 }

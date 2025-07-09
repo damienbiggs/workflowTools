@@ -1,7 +1,8 @@
 {
   "PushToRemoteBranch": [
-    "--force-push",
     "--username",
+    "--force-push",
+    "--git-remote-branch-username",
     "--remote-branch"
   ],
   "DisplayBuildOutputForBuildwebBuilds": [
@@ -68,11 +69,13 @@
   "InvokeSandboxBuild": [
     "--use-git-tracking-branch",
     "--buildweb-branch",
+    "--username",
     "--build-display-name",
     "--component-builds",
     "--build-type",
     "--buildweb-project",
     "--exclude-sync-to",
+    "--buildweb-username",
     "--site",
     "--store-trees",
     "--changelist-id"
@@ -227,7 +230,8 @@
     "--use-database-host"
   ],
   "AmendCommitAllFilesOnly": [
-    "--no-verify"
+    "--no-verify",
+    "--include-job-results"
   ],
   "AmendCommitAll": [
     "--no-verify"
@@ -475,8 +479,9 @@
     "--tracking-branch"
   ],
   "PushToPrecommitBranch": [
+    "--username",
     "--force-push",
-    "--username"
+    "--git-remote-branch-username"
   ],
   "ExitIfVariableIsUnset": [
     "--variable"
@@ -490,9 +495,6 @@
     "--destination-file",
     "--source-file",
     "--skip-backup"
-  ],
-  "LoadCompletedIssuesWithoutResolution": [
-    "--username"
   ],
   "RemoveReviewUrl": [
     "--always-include-review-url"
@@ -581,13 +583,12 @@
   ],
   "CheckStatusOfLatestBuilds": [
     "--max-builds",
-    "--username",
     "--jenkins-jobs"
   ],
   "BaseTransitionJiraIssue": [
-    "--jira-username",
-    "--jira-url",
     "--username",
+    "--jira-url",
+    "--jira-username",
     "--disable-jira"
   ],
   "ConvertCardsToJiraIssues": [
@@ -683,9 +684,9 @@
     "--keystore-password"
   ],
   "UpdateMergeRequestApprovers": [
+    "--username",
     "--trivial-reviewer-label",
     "--approvals-required",
-    "--username",
     "--gitlab-username",
     "--allow-self-approval",
     "--approval-rule-name"
@@ -742,8 +743,9 @@
   ],
   "BaseCommitAction": [
     "--tracking-branch",
-    "--target-merge-branch",
     "--username",
+    "--target-merge-branch",
+    "--git-remote-branch-username",
     "--source-merge-branch",
     "--prefer-pull-request",
     "--changelist-id"
@@ -798,7 +800,6 @@
     "--review-request-id"
   ],
   "BaseCommitUsingReviewBoardAction": [
-    "--username",
     "--rb-username",
     "--use-rb-api-token"
   ],
@@ -841,9 +842,6 @@
     "--sql-statement",
     "--database-url-pattern",
     "--database-url"
-  ],
-  "BaseSetShipItReviewersList": [
-    "--username"
   ],
   "BaseCommitAmendAction": [
     "--no-verify",
@@ -916,8 +914,7 @@
   ],
   "BaseBatchCloseReviews": [
     "--rb-username",
-    "--use-rb-api-token",
-    "--username"
+    "--use-rb-api-token"
   ],
   "BaseAction": [
     "--skip-if-variable-not-set",
@@ -980,7 +977,6 @@
     "--vcd-check-quota"
   ],
   "ReadPendingChangelist": [
-    "--username",
     "--changelist-id"
   ]
 }

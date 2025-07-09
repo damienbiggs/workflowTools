@@ -65,9 +65,10 @@ public abstract class BaseTransitionJiraIssue extends BaseCommitAction {
 
         JiraUser assignee = issueFields.assignee;
 
-        if (assignee != null && !assignee.name.equals(config.username)) {
+        String username = serviceLocator.determineUsername(jiraConfig.jiraUsername);
+        if (assignee != null && !assignee.name.equals(username)) {
             log.info("Not transitioning issue {} as it is assigned to {}, current username is {}",
-                    bugNumber, assignee.name, config.username);
+                    bugNumber, assignee.name, username);
             return;
         }
 

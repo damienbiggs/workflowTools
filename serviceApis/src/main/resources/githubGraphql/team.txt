@@ -1,0 +1,14 @@
+query Organization {
+    organization(login: "${orgName}") {
+        login
+        teams(query: "${login}", first: 5) {
+            totalCount
+            nodes {
+                id
+                name
+                slug
+                combinedSlug
+            }
+        }
+    }
+}

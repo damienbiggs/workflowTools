@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import static com.vmware.http.cookie.ApiAuthentication.jira_token;
 import static com.vmware.jira.domain.IssueStatusDefinition.InProgress;
 import static com.vmware.jira.domain.IssueStatusDefinition.InReview;
+import static com.vmware.jira.domain.IssueStatusDefinition.New;
 import static com.vmware.jira.domain.IssueStatusDefinition.Open;
 import static com.vmware.jira.domain.IssueStatusDefinition.Reopened;
 import static com.vmware.config.jira.IssueTypeDefinition.Bug;
@@ -116,7 +117,7 @@ public class Jira extends AbstractRestService {
     }
 
     public IssuesResponse getOpenTasksForUser() {
-        String allowedStatuses = generateNumericalEnumListAsInts(Open, Reopened, InProgress, InReview, WaitingForCodeReview);
+        String allowedStatuses = generateNumericalEnumListAsInts(New, Open, Reopened, InProgress, InReview, WaitingForCodeReview);
         String issueTypesToGet = generateNumericalEnumListAsInts(Improvement, Feature, Bug, TechComm);
 
         String jql = String.format("issuetype in (%s,subTaskIssueTypes()) AND status in (%s) AND assignee=%s",

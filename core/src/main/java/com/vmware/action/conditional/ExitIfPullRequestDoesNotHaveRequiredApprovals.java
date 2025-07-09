@@ -3,11 +3,14 @@ package com.vmware.action.conditional;
 import com.vmware.action.base.BaseCommitWithPullRequestAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.github.domain.GraphqlResponse;
 import com.vmware.github.domain.PullRequest;
+import com.vmware.github.domain.User;
 import com.vmware.util.StringUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.vmware.github.domain.PullRequest.PullRequestReviewDecision.REVIEW_REQUIRED;
 
 @ActionDescription("Exists if the pull request does not have all required approvals")
 public class ExitIfPullRequestDoesNotHaveRequiredApprovals extends BaseCommitWithPullRequestAction {
@@ -27,12 +30,12 @@ public class ExitIfPullRequestDoesNotHaveRequiredApprovals extends BaseCommitWit
             return;
         }
         PullRequest pullRequest = draft.getGithubPullRequest();
-        List<String> approvers = pullRequest.approvers();
+        List<User> approvers = pullRequest.approvers();
         if (approvers.isEmpty()) {
-            cancelWithMessage("no approved reviews found for pull request {}", pullRequest.url);
+            cancelWithMessage("no approved reviews found for pull request {}", pullRequest.number);
         } else {
-            draft.shipItReviewers = StringUtils.join(approvers);
-            if (pullRequest.reviewDecision == GraphqlResponse.PullRequestReviewDecision.REVIEW_REQUIRED) {
+            draft.shipItReviewers = approvers.stream().map(user -> user.name).collect(Collectors.joining(", "));
+            if (pullRequest.reviewDecision == REVIEW_REQUIRED) {
                 cancelWithMessage("still need more approvals, already approved by {}", draft.shipItReviewers);
             }
             log.info("Approved by {}", draft.shipItReviewers);

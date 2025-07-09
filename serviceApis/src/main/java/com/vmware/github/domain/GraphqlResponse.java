@@ -16,10 +16,6 @@ import java.util.stream.Collectors;
 
 public class GraphqlResponse {
 
-    public enum PullRequestReviewDecision {
-        APPROVED, CHANGES_REQUEST, REVIEW_REQUIRED
-    }
-
     @JsonAdapter(ResponseDataDeserializer.class)
     public ResponseData data;
     public ErrorMessage[] errors;
@@ -28,6 +24,7 @@ public class GraphqlResponse {
         public Repository repository;
         public MutatedPullRequest mutatedPullRequest;
         public Search search;
+        public Organization organization;
         public User user;
     }
 
@@ -101,6 +98,7 @@ public class GraphqlResponse {
             mutationResult.ifPresent(element ->
                     data.mutatedPullRequest = jsonDeserializationContext.deserialize(element, MutatedPullRequest.class));
 
+            data.organization = jsonDeserializationContext.deserialize(dataObject.get("organization"), Organization.class);
             data.user = jsonDeserializationContext.deserialize(dataObject.get("user"), User.class);
             data.repository = jsonDeserializationContext.deserialize(dataObject.get("repository"), Repository.class);
             data.search = jsonDeserializationContext.deserialize(dataObject.get("search"), Search.class);

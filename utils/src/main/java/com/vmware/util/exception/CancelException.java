@@ -6,7 +6,7 @@ public class CancelException extends WorkflowRuntimeException {
 
     private final LogLevel logLevel;
 
-    public CancelException(LogLevel logLevel, String message, String... arguments) {
+    public CancelException(LogLevel logLevel, String message, Object... arguments) {
         super(message, arguments);
         this.logLevel = logLevel;
     }

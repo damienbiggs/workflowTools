@@ -22,7 +22,8 @@ public class PushToRemoteBranch extends BaseAction {
             remoteBranchPath = remoteBranchName;
         }
 
-        remoteBranchPath = remoteBranchPath.replace("$USERNAME", config.username);
+        String username = serviceLocator.determineUsername(gitRepoConfig.gitRemoteBranchUsername);
+        remoteBranchPath = remoteBranchPath.replace("$USERNAME", username);
         remoteBranchPath = remoteBranchPath.replace("$BRANCH_NAME", git.currentBranch());
         log.info("Updating remote branch " + remoteBranchPath);
 

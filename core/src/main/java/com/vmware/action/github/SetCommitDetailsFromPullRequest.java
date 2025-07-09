@@ -27,7 +27,7 @@ public class SetCommitDetailsFromPullRequest extends BaseCommitWithPullRequestAc
         if (StringUtils.isEmpty(pullRequest.title) && StringUtils.isEmpty(pullRequest.body)) {
             throw new FatalException("Title and body are blank for pull request {}", pullRequest.number);
         }
-        log.info("Using pull request {} ({}) for commit details", pullRequest.id, pullRequest.title);
+        log.info("Using pull request {} ({}) for commit details", pullRequest.number, pullRequest.title);
         String fullText = pullRequest.title + "\n" + pullRequest.body;
         ReviewRequestDraft parsedDraft = new ReviewRequestDraft(fullText, commitConfig);
         draft.summary = parsedDraft.summary;

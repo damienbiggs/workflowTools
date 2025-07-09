@@ -34,7 +34,7 @@ public class DisplayOpenPullRequestReviewComments extends BaseCommitWithPullRequ
             }
 
             if (!firstThreadFound) {
-                log.info("Displaying open pull request review comments for {}", pullRequest.url);
+                log.info("Displaying open pull request review comments for {}", pullRequest.number);
                 firstThreadFound = true;
             }
 
@@ -49,12 +49,11 @@ public class DisplayOpenPullRequestReviewComments extends BaseCommitWithPullRequ
             }
             int longestAuthor = 0;
             for (ReviewComment comment : comments) {
-                String authorName = github.getUser(comment.author.login).name;
-                longestAuthor = Math.max(authorName.length(), longestAuthor);
+                longestAuthor = Math.max(comment.author.name.length(), longestAuthor);
             }
 
             for (ReviewComment comment : comments) {
-                String authorName = github.getUser(comment.author.login).name;
+                String authorName = comment.author.name;
                 String authorInfo = authorName + StringUtils.repeat(longestAuthor - authorName.length(), " ") + " - ";
                 String body = comment.body.replace("\n", "\n" + StringUtils.repeat(longestAuthor + 3, " "));
                 log.info("{}{}", authorInfo, body);
@@ -63,7 +62,7 @@ public class DisplayOpenPullRequestReviewComments extends BaseCommitWithPullRequ
         }
 
         if (!firstThreadFound) {
-            log.info("No open pull request review comments for {}", pullRequest.url);
+            log.info("No open pull request review comments for {}", pullRequest.number);
         }
     }
 

@@ -6,7 +6,6 @@ import java.util.Date;
 
 public class Commit {
     public String oid;
-    public CommitRepository repository;
 
     @SerializedName("statusCheckRollup")
     public StatusCheckRollup statusCheckRollup;
@@ -27,6 +26,8 @@ public class Commit {
     }
 
     public class StatusNode {
+        public String id;
+        public String databaseId;
         public String name;
         public String summary;
         public Status status;
@@ -52,16 +53,11 @@ public class Commit {
         public boolean equals(Object obj) {
             if (obj instanceof StatusNode) {
                 StatusNode otherNode = (StatusNode) obj;
-                return name != null && name.equals(otherNode.name);
+                return fullName().equals(otherNode.fullName());
             } else {
                 return false;
             }
         }
-    }
-
-    public static class CommitRepository {
-        public String name;
-        public User owner;
     }
 
     public static class CheckSuite {

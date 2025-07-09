@@ -172,7 +172,7 @@ public class ServiceLocator {
         return reviewBoardException;
     }
 
-    private String determineUsername(String overrideValue) {
+    public String determineUsername(String overrideValue) {
         return firstNonEmpty(overrideValue, config.username);
     }
 

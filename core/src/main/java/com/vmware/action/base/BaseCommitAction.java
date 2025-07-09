@@ -80,22 +80,22 @@ public abstract class BaseCommitAction extends BaseAction {
     }
 
     protected boolean commitTextHasChanges(boolean includeJobResultsInCommit) {
-        String commitText = commitConfig.preferPullRequest && draft.getGithubPullRequest() != null
-                ? draft.getGithubPullRequest().asText() : readLastChange();
+        boolean usingPullRequest = commitConfig.preferPullRequest && draft.getGithubPullRequest() != null;
+        String commitText = usingPullRequest ? draft.getGithubPullRequest().asText() : readLastChange();
         ReviewRequestDraft existingDraft = new ReviewRequestDraft(commitText, commitConfig);
         String existingCommitText = existingDraft.toText(commitConfig);
-        String updatedCommitText = updatedCommitText(includeJobResultsInCommit);
+        String updatedCommitText = updatedCommitText(includeJobResultsInCommit, !usingPullRequest);
 
         if (!existingCommitText.equals(updatedCommitText)) {
             log.debug("Existing: {}\nUpdated: {}", existingCommitText, updatedCommitText);
             return true;
-        } else {
-            return false;
         }
+
+        return usingPullRequest && !draft.matchesReviewers(draft.getGithubPullRequest().reviewers());
     }
 
-    protected String updatedCommitText(boolean includeJobResultsInCommit) {
-        return draft.toText(commitConfig, includeJobResultsInCommit).trim();
+    protected String updatedCommitText(boolean includeJobResultsInCommit, boolean includeReviewedBy) {
+        return draft.toText(commitConfig, true, includeJobResultsInCommit, includeReviewedBy).trim();
     }
 
     protected Perforce getLoggedInPerforceClient() {
@@ -143,7 +143,8 @@ public abstract class BaseCommitAction extends BaseAction {
         if (StringUtils.isNotBlank(gitRepoConfig.sourceMergeBranch)) {
             return gitRepoConfig.sourceMergeBranch;
         } else {
-            String sourceBranch = gitRepoConfig.gitMergeBranchFormat.replace("$USERNAME", config.username);
+            String username = serviceLocator.determineUsername(gitRepoConfig.gitRemoteBranchUsername);
+            String sourceBranch = gitRepoConfig.gitMergeBranchFormat.replace("$USERNAME", username);
             String branchName = git.currentBranch();
             sourceBranch = sourceBranch.replace("$BRANCH_NAME", branchName);
             return sourceBranch;

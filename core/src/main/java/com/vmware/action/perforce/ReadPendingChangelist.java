@@ -19,7 +19,7 @@ public class ReadPendingChangelist extends BasePerforceCommitAction {
                 ? perforceClientConfig.changelistId : perforce.selectPendingChangelist();
         String changelistText = perforce.readChangelist(changelistId);
         if (StringUtils.isEmpty(changelistText) || !changelistText.contains("\n")) {
-            throw new RuntimeException("No pending changelist exists for user " + config.username);
+            throw new RuntimeException("No pending changelist exists for user " + perforce.getUsername());
         }
 
         draft.fillValuesFromCommitText(changelistText, commitConfig);

@@ -46,7 +46,7 @@ public class LoadIssues extends BaseBatchJiraAction {
         RapidView rapidView = jira.getRapidView(projectIssues.boardId);
         List<IssueTypeDefinition> typesToSearchFor = jiraConfig.includeAllIssueTypes ? null : Arrays.asList(jiraConfig.issueTypesToInclude);
         List<IssueSummary> backlogStories = rapidView.getIssues(typesToSearchFor, jiraConfig.includeSprintStories);
-        if (backlogStories.size() == 0) {
+        if (backlogStories.isEmpty()) {
             log.info("No issues of type {} found for board {}", Arrays.toString(jiraConfig.issueTypesToInclude), projectIssues.projectName);
             return;
         }

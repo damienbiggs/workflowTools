@@ -3,8 +3,10 @@ package com.vmware.action.base;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.github.Github;
 import com.vmware.github.domain.PullRequest;
+import com.vmware.util.StringUtils;
 import com.vmware.util.logging.LogLevel;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -36,18 +38,35 @@ public abstract class BaseCommitAmendAction extends BaseCommitCreateAction {
         if (commitConfig.preferPullRequest && draft.getGithubPullRequest() != null) {
             Github github = serviceLocator.getGithub();
             PullRequest pullRequest = draft.getGithubPullRequest();
-            log.info("Updating pull request {}", pullRequest.url);
-            pullRequest.title = draft.summary;
-            pullRequest.body = draft.toText(commitConfig, false, commitConfig.includeJobResults);
-            github.updatePullRequestDetails(pullRequest);
+
+            log.debug("Updating pull request {}", pullRequest.url);
+            if (!draft.matchesReviewers(pullRequest.reviewers())) {
+                List<String> usernames = StringUtils.splitAndTrim(draft.reviewedBy, ",");
+                log.info("Existing pull request reviewers: {}", pullRequest.reviewers());
+                log.info("Updating pull request reviewers for {} to {}", pullRequest.url, usernames);
+                github.updateReviewersForPullRequest(pullRequest, usernames);
+            } else {
+                log.debug("Reviewers are the same, not updating");
+            }
+
+            String bodyText = draft.toText(commitConfig, false, commitConfig.includeJobResults, false);
+            if (!pullRequest.title.equals(draft.summary) || !pullRequest.body.equals(bodyText)) {
+                log.info("Updating pull request details for {}", pullRequest.url);
+                pullRequest.title = draft.summary;
+                pullRequest.body = bodyText;
+                github.updatePullRequestDetails(pullRequest);
+            } else {
+                log.debug("Details are the same, not updating");
+            }
+        } else {
+            super.process();
         }
-        super.process();
     }
 
     @Override
     protected void commitUsingGit(String description) {
         String existingHeadRef = git.revParse("head");
-        git.amendCommit(updatedCommitText(commitConfig.includeJobResults), includeAllChangesInCommit, gitRepoConfig.noVerify);
+        git.amendCommit(updatedCommitText(commitConfig.includeJobResults, true), includeAllChangesInCommit, gitRepoConfig.noVerify);
         git.updateGitChangesetTagsMatchingRevision(existingHeadRef, LogLevel.INFO);
     }
 

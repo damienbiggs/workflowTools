@@ -40,6 +40,7 @@ public class InvokeSandboxBuild extends BaseCommitAction {
         String storeTreesParameter = buildwebConfig.storeTrees ? " --store-trees" : " --no-store-trees";
         String siteParameter = StringUtils.isNotBlank(buildwebConfig.buildwebSite) ? " --site=" + buildwebConfig.buildwebSite : "";
         String componentBuildsParameter = createComponentBuildsParameter();
+        String usernameToUse = serviceLocator.determineUsername(buildwebConfig.buildwebUsername);
 
         if (changelistId.toLowerCase().contains("head")) {
             String originalChangelistIdValue = changelistId;
@@ -51,9 +52,9 @@ public class InvokeSandboxBuild extends BaseCommitAction {
                 syncToParameter = ""; // rely on --accept-defaults to handle it correctly
             }
         }
-        String command = format("%s sandbox queue %s --buildtype=%s%s --branch=%s --override-branch --changeset=%s%s%s%s --accept-defaults",
+        String command = format("%s sandbox queue %s --buildtype=%s%s --branch=%s --user=%s --override-branch --changeset=%s%s%s%s --accept-defaults",
                 buildwebConfig.goBuildBinPath, buildwebConfig.buildwebProject, buildwebConfig.buildType,
-                syncToParameter, buildwebConfig.determineBuildwebBranch().getValue(),
+                syncToParameter, buildwebConfig.determineBuildwebBranch().getValue(), usernameToUse,
                 changelistId, storeTreesParameter, siteParameter, componentBuildsParameter);
 
         log.info("Invoking build {}", command);

@@ -5,6 +5,7 @@ import com.vmware.util.complexenum.ComplexEnum;
 public enum IssueStatusDefinition implements ComplexEnum<Integer> {
 
     Open(1),
+    New(10027),
     InProgress(3),
     Reopened(4),
     Resolved(5),

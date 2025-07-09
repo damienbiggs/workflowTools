@@ -1,7 +1,8 @@
 {
-  user(login: "${loginId}") {
+  user(login: "${login}") {
     login
     ... on User {
+      id,
       login,
       name,
       url

@@ -1,4 +1,4 @@
-mutation create {
+mutation mutate {
     ${mutationName} (
         input: ${input}
     ) {

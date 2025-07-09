@@ -27,7 +27,7 @@ public class User implements AutocompleteUser {
 
     @Override
     public String username() {
-        return login;
+        return isUser() ? login : "@" + slug;
     }
 
     @Override
@@ -36,15 +36,10 @@ public class User implements AutocompleteUser {
     }
 
     public boolean isUser() {
-        return combinedSlug == null;
+        return slug == null;
     }
 
     public boolean isTeam() {
-        return combinedSlug != null;
-    }
-
-    public class Organization {
-        public String login;
-        public String name;
+        return slug != null;
     }
 }

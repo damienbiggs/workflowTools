@@ -46,7 +46,8 @@ public abstract class BaseSshAction extends BaseVappAction {
                 }
                 credentials = new Sites().new Credentials(sshConfig.sshUsername, sshConfig.sshPassword);
             }
-            return new SiteConfig(vm.getHost(), 22, credentials.username, credentials.password);
+            String username = StringUtils.isNotBlank(sshConfig.sshUsername) ? sshConfig.sshUsername : credentials.username;
+            return new SiteConfig(vm.getHost(), 22, username, credentials.password);
         } else if (sshConfig.hasCommandLineSite()) {
             return sshConfig.commandLineSite();
         } else {

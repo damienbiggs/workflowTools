@@ -62,6 +62,9 @@ public class GitRepoConfig {
     @ConfigurableProperty(help = "Format for source branch for a request")
     public String gitMergeBranchFormat;
 
+    @ConfigurableProperty(commandLine = "--git-remote-branch-username", help = "Username to override default username for merge branch format")
+    public String gitRemoteBranchUsername;
+
     @ConfigurableProperty(commandLine = "--mark-as-draft", help = "Whether to mark request as a draft")
     public boolean markAsDraft;
 

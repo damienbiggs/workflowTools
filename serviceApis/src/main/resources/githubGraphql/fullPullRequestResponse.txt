@@ -9,10 +9,21 @@
           title,
           body,
           isDraft,
+          merged,
+          closed,
+          headRepository {
+            name
+            owner {
+               login
+            }
+          }
           reviews(first:30, states: APPROVED) {
             nodes {
               author {
                 login
+                    ... on User {
+                        name
+                    }
               }
             }
           },
@@ -43,6 +54,9 @@
                       id,
                       author {
                         login
+                            ... on User {
+                                name
+                            }
                       },
                       body,
                       createdAt,
@@ -57,12 +71,6 @@
               nodes {
                   commit {
                       oid,
-                      repository {
-                          name
-                          owner {
-                              login
-                          }
-                      },
                       statusCheckRollup {
                           status: state
                           contexts(first: 10) {
@@ -71,6 +79,8 @@
                               totalCount
                               nodes {
                                   ... on CheckRun {
+                                      id,
+                                      databaseId,
                                       name
                                       summary
                                       status: conclusion

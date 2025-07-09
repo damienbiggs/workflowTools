@@ -1,5 +1,7 @@
 package com.vmware.http.graphql;
 
+import com.google.gson.annotations.Expose;
+
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
@@ -10,9 +12,16 @@ import java.util.stream.Collectors;
  */
 public class InputSerializer {
     public String serialize(Object input) {
-        List<Field> fieldsToCheck = Arrays.stream(input.getClass().getFields()).filter(field -> !field.getType().isPrimitive()).collect(Collectors.toList());
+        Field[] fieldsToCheck = input.getClass().getFields();
         StringBuilder output = new StringBuilder();
         for (Field field : fieldsToCheck) {
+            if (field.getType().isPrimitive()) {
+                continue;
+            }
+            Expose exposeAnnotation = field.getAnnotation(Expose.class);
+            if (exposeAnnotation != null && !exposeAnnotation.serialize()) {
+                continue;
+            }
             try {
                 Object value = field.get(input);
                 if (value != null) {
@@ -36,8 +45,13 @@ public class InputSerializer {
             return value.toString();
         } else if (value instanceof Integer || value instanceof Long) {
             return value.toString();
+        } else if (value.getClass().isArray()) {
+            Object[] values = (Object[]) value;
+            return "[" + Arrays.stream(values).map(this::getValueAsText).collect(Collectors.joining(", ")) + "]";
+        } else if (value.getClass().isEnum()) {
+            return value.toString();
         } else {
-            return "\"" + value.toString() + "\"";
+            return "\"" + value + "\"";
         }
     }
 }

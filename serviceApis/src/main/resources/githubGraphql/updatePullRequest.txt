@@ -1,7 +1,0 @@
-mutation update {
-    ${mutationName} (
-        input: ${input}
-    ) {
-        pullRequest{id, number, isDraft, closed}
-    }
-}

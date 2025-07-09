@@ -27,7 +27,7 @@ public class LoadCompletedIssuesWithoutResolution extends BaseBatchJiraAction {
         addMatchingIssues(matchingIssues, IssueStatusDefinition.Closed);
         addMatchingIssues(matchingIssues, IssueStatusDefinition.Resolved);
         if (matchingIssues.isEmpty()) {
-            log.info("No issues retrieved for user {} that are closed with no resolution", config.username);
+            log.info("No issues retrieved for user {} that are closed with no resolution", jira.getUsername());
         } else {
             log.info("Retrieved {} issues that are completed with no resolution", matchingIssues.size());
             projectIssues.addAllIssues(matchingIssues);

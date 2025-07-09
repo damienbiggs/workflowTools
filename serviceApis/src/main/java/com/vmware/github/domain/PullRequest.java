@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class PullRequest {
-    public GraphqlResponse.PullRequestReviewDecision reviewDecision;
+    public enum PullRequestReviewDecision {
+        APPROVED, CHANGES_REQUEST, REVIEW_REQUIRED
+    }
+
+    public PullRequestReviewDecision reviewDecision;
     public ReviewThreadNodes reviewThreads;
     @SerializedName("reviews")
     public ReviewNodes approvedReviews;
@@ -37,6 +41,8 @@ public class PullRequest {
     public String baseRefName;
     public String headRefName;
     public String headRefOid;
+    @Expose(serialize = false)
+    public HeadRepository headRepository;
 
     public PullRequest() {
     }
@@ -46,11 +52,18 @@ public class PullRequest {
     }
 
     public String repoName() {
-        return commits.nodes[0].commit.repository.name;
+        return headRepository.name;
     }
 
     public String repoOwner() {
-        return commits.nodes[0].commit.repository.owner.login;
+        return headRepository.owner.login;
+    }
+
+    public String reviewers() {
+        if (reviewRequests == null || reviewRequests.nodes == null) {
+            return "";
+        }
+        return Arrays.stream(reviewRequests.nodes).map(node -> node.requestedReviewer.username()).collect(Collectors.joining(","));
     }
 
     public Commit.Status checksStatus() {
@@ -72,8 +85,8 @@ public class PullRequest {
         return nodes;
     }
 
-    public List<String> approvers() {
-        return Arrays.stream(approvedReviews.nodes).map(node -> node.author.login).collect(Collectors.toList());
+    public List<User> approvers() {
+        return Arrays.stream(approvedReviews.nodes).map(node -> node.author).collect(Collectors.toList());
     }
 
     public String asText() {
@@ -102,5 +115,18 @@ public class PullRequest {
 
     public class ReviewRequestNode {
         public User requestedReviewer;
+    }
+
+    public static class HeadRepository {
+        public HeadRepository() {
+        }
+
+        public HeadRepository(String owner, String name) {
+            this.name = name;
+            this.owner = new User(owner);
+        }
+
+        public String name;
+        public User owner;
     }
 }

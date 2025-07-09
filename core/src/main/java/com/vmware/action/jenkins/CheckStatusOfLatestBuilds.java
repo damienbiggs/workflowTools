@@ -47,7 +47,7 @@ public class CheckStatusOfLatestBuilds extends BaseAction {
         for (JobBuild build : job.builds) {
             JobBuild buildDetails = jenkins.getJobBuildDetails(build);
             buildCounter++;
-            if (buildDetails.getJobInitiator().equals(config.username)) {
+            if (buildDetails.getJobInitiator().equals(jenkins.getUsername())) {
                 matchedBuild = buildDetails;
                 break;
             } else if (buildCounter == jenkinsConfig.maxJenkinsBuildsToCheck) {

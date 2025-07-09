@@ -414,6 +414,18 @@ public class ReviewRequestDraft extends BaseEntity {
         return isNotEmpty(reviewedBy);
     }
 
+    public boolean matchesReviewers(String reviewers) {
+        String[] draftReviewers = hasReviewers() ? reviewedBy.split(",") : new String[0];
+        if (StringUtils.isEmpty(reviewers)) {
+            return draftReviewers.length == 0;
+        }
+        String[] reviewersToCheck = reviewers.split(",");
+        if (draftReviewers.length != reviewersToCheck.length) {
+            return false;
+        }
+        return Arrays.stream(draftReviewers).allMatch(reviewer -> Arrays.asList(reviewersToCheck).contains(reviewer));
+    }
+
     /**
      * @return Whether the review request draft contains any actual data.
      */
@@ -430,14 +442,14 @@ public class ReviewRequestDraft extends BaseEntity {
     }
 
     public String toText(CommitConfig commitConfig) {
-        return toText(commitConfig, true, true);
+        return toText(commitConfig, true, true, true);
     }
 
     public String toText(CommitConfig commitConfig, boolean includeJobResults) {
-        return toText(commitConfig, true, includeJobResults);
+        return toText(commitConfig, true, includeJobResults, true);
     }
 
-    public String toText(CommitConfig commitConfig, boolean includeSummary, boolean includeJobResults) {
+    public String toText(CommitConfig commitConfig, boolean includeSummary, boolean includeJobResults, boolean includeReviewedBy) {
         StringBuilder builder = new StringBuilder();
         if (includeSummary) {
             builder.append(summary);
@@ -456,7 +468,7 @@ public class ReviewRequestDraft extends BaseEntity {
         if (isNotEmpty(bugNumbers)) {
             builder.append("\n").append(commitConfig.getBugNumberLabel()).append(bugNumbers);
         }
-        if (isNotEmpty(reviewedBy)) {
+        if (includeReviewedBy && isNotEmpty(reviewedBy)) {
             builder.append("\n").append(commitConfig.getReviewedByLabel()).append(reviewedBy);
         }
         if (hasReviewNumber()) {
