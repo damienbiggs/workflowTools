@@ -14,6 +14,10 @@ public class PullRequest {
         APPROVED, CHANGES_REQUEST, REVIEW_REQUIRED
     }
 
+    public enum PullRequestState {
+        CLOSED, MERGED, OPEN
+    }
+
     public PullRequestReviewDecision reviewDecision;
     public ReviewThreadNodes reviewThreads;
     @SerializedName("reviews")
@@ -33,14 +37,14 @@ public class PullRequest {
     public Boolean isDraft;
     @Expose(deserialize = false)
     public Boolean draft;
-    public boolean merged;
-    public boolean closed;
+    public PullRequestState state;
     public String url;
     public String title;
     public String body;
     public String baseRefName;
     public String headRefName;
     public String headRefOid;
+    public LabelNodes labels;
     @Expose(serialize = false)
     public HeadRepository headRepository;
 
@@ -63,11 +67,36 @@ public class PullRequest {
         if (reviewRequests == null || reviewRequests.nodes == null) {
             return "";
         }
-        return Arrays.stream(reviewRequests.nodes).map(node -> node.requestedReviewer.username()).collect(Collectors.joining(","));
+        return Arrays.stream(reviewRequests.nodes).filter(node -> !node.asCodeOwner)
+                .map(node -> node.requestedReviewer.username()).collect(Collectors.joining(","));
+    }
+
+    public String codeOwners() {
+        if (reviewRequests == null || reviewRequests.nodes == null) {
+            return "";
+        }
+        return Arrays.stream(reviewRequests.nodes).filter(node -> node.asCodeOwner)
+                .map(node -> node.requestedReviewer.username()).collect(Collectors.joining(","));
+    }
+
+
+    public String labels() {
+        if (labels == null || labels.nodes == null) {
+            return "";
+        }
+        return Arrays.stream(labels.nodes).map(node -> node.name).collect(Collectors.joining(","));
     }
 
     public Commit.Status checksStatus() {
         return commits.nodes[0].commit.statusCheckRollup.status;
+    }
+
+    public String checksSummary() {
+        List<Commit.StatusNode> checks = checks();
+        long passedCount = checks.stream().filter(check -> check.status == Commit.Status.SUCCESS).count();
+        long failedCount = checks.stream().filter(check -> check.status == Commit.Status.FAILURE).count();
+        long pendingCount = checks.stream().filter(check -> check.status == Commit.Status.PENDING).count();
+        return String.format("%s passed, %s failed, %s pending", passedCount, failedCount, pendingCount);
     }
 
     public List<Commit.StatusNode> checks() {
@@ -114,6 +143,7 @@ public class PullRequest {
     }
 
     public class ReviewRequestNode {
+        public boolean asCodeOwner;
         public User requestedReviewer;
     }
 
@@ -128,5 +158,9 @@ public class PullRequest {
 
         public String name;
         public User owner;
+    }
+
+    public static class LabelNodes {
+        public Label[] nodes;
     }
 }

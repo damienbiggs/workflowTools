@@ -232,18 +232,16 @@ public class Git extends BaseScmWrapper {
         }));
     }
 
-    public String configValue(String propertyName) {
+    public String configValue(String... propertyNames) {
         if (configValues == null) {
             configValues = configValues();
         }
         if (configValues.isEmpty()) {
-            log.debug("Returning empty string for git config value {} as git is not installed", propertyName);
+            log.debug("Returning empty string for git config value {} as git is not installed", Arrays.toString(propertyNames));
             return "";
         }
-        if (!configValues.containsKey(propertyName.toLowerCase())) {
-            return "";
-        }
-        return configValues.get(propertyName.toLowerCase());
+        return Arrays.stream(propertyNames).filter(name -> name != null && configValues.containsKey(name.toLowerCase()))
+                .map(name -> configValues.get(name.toLowerCase())).findFirst().orElse("");
     }
 
     public String addConfigValue(String propertyName, String propertyValue) {
@@ -513,17 +511,6 @@ public class Git extends BaseScmWrapper {
             }
         }
         return fileChanges;
-    }
-
-    public int getCommitCountSinceRef(String ref) {
-        int counter = 0;
-        String shaToMatch = revParse(ref);
-        String shaToCheck = revParse("head");
-        while (!shaToCheck.equals(shaToMatch) && counter < 100) {
-            counter++;
-            shaToCheck = revParse("head~" + counter);
-        }
-        return counter;
     }
 
     @Override

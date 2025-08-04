@@ -52,12 +52,13 @@ public abstract class AbstractRestBuildService extends AbstractRestService {
             if (jobBuild.status == null
                     || jobBuild.status == BuildStatus.STARTING || jobBuild.status == BuildStatus.BUILDING) {
                 try {
-                    jobBuild.status = getResultForBuild(jobUrl);
-                    log.info("{} {} Result: {}", jobBuild.name, jobUrl, jobBuild.status);
+                    updateResultInfoForBuild(jobBuild);
                 } catch (NotFoundException nfe) {
                     log.info("{} {} could not be found", jobBuild.name, jobUrl);
                 }
-            } else {
+            }
+
+            if (jobBuild.status != null) {
                 log.info("{} {} Result: {}", jobBuild.name, jobUrl, jobBuild.status);
             }
             isSuccess = isSuccess && jobBuild.status == BuildStatus.SUCCESS;
@@ -73,7 +74,7 @@ public abstract class AbstractRestBuildService extends AbstractRestService {
         return StringUtils.join(lines, "\n");
     }
 
-    protected abstract BuildStatus getResultForBuild(String url);
+    protected abstract void updateResultInfoForBuild(JobBuild build);
 
     protected abstract void updateAllBuildsResultSuccessValue(ReviewRequestDraft draft, boolean result);
 }

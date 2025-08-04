@@ -9,13 +9,19 @@
           title,
           body,
           isDraft,
-          merged,
-          closed,
+          state,
           headRepository {
             name
             owner {
                login
             }
+          }
+          labels(first:30) {
+              nodes {
+                  id
+                  isDefault
+                  name
+              }
           }
           reviews(first:30, states: APPROVED) {
             nodes {
@@ -29,6 +35,7 @@
           },
           reviewRequests(first: 30) {
             nodes {
+              asCodeOwner,
               requestedReviewer {
                 ... on Team {
                     combinedSlug

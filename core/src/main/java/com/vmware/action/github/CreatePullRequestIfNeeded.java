@@ -32,6 +32,7 @@ public class CreatePullRequestIfNeeded extends BaseCommitUsingGithubAction {
 
         log.info("Creating pull request with source branch {} and target branch {}", pullRequest.headRefName, pullRequest.baseRefName);
         PullRequest createdRequest = github.createPullRequest(pullRequest);
+
         draft.setGithubPullRequest(createdRequest);
         if (draft.hasReviewNumber()) {
             log.debug("Not setting reviewer ids as pull request is already associated with a reviewboard review");

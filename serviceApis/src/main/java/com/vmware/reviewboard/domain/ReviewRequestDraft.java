@@ -65,6 +65,8 @@ public class ReviewRequestDraft extends BaseEntity {
     @JsonAdapter(LinkArrayDeserializer.class)
     public String reviewedBy = "";
     @Expose(serialize = false, deserialize = false)
+    public String codeOwners;
+    @Expose(serialize = false, deserialize = false)
     public String shipItReviewers = "";
     @SerializedName("target_groups")
     @JsonAdapter(LinkArrayDeserializer.class)

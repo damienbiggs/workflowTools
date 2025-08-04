@@ -21,4 +21,7 @@ public class GithubConfig {
 
     @ConfigurableProperty(commandLine = "--merge-method", help = "Method to use for merging, can be merge, squash or rebase")
     public String mergeMethod;
+
+    @ConfigurableProperty(commandLine = "--use-any-matching-pull-request", help = "Use any matching pull request if no open one found")
+    public boolean useAnyMatchingPullRequest;
 }

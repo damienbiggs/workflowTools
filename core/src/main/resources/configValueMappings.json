@@ -286,7 +286,8 @@
     "--use-owned-vapps-only"
   ],
   "SelectMatchingPullRequest": [
-    "--fail-if-no-request-found"
+    "--fail-if-no-request-found",
+    "--use-any-matching-pull-request"
   ],
   "LoadVapps": [
     "--query-filter",

@@ -31,9 +31,12 @@ public class CheckStatusOfPullRequest extends BaseCommitWithPullRequestAction {
         if (pullRequest.isDraft) {
             log.info("Pull Request is marked as draft!");
         }
-        log.debug("Pull request checks status: {}", pullRequest.checksStatus());
-        List<Commit.StatusNode> nodes = pullRequest.checks();
         DynamicLogger logger = new DynamicLogger(log);
+
+        String labels = pullRequest.labels();
+        logger.log(StringUtils.isNotBlank(labels) ? LogLevel.INFO : LogLevel.DEBUG, "Labels: {}", pullRequest.labels());
+        log.debug("Checks status: {}", pullRequest.checksStatus());
+        List<Commit.StatusNode> nodes = pullRequest.checks();
         nodes.forEach(node -> {
             String targetUrl = isNotBlank(node.targetUrl) ? "(" + node.targetUrl + ")" : "";
             String description = isNotBlank(node.summary) ? node.summary :
@@ -42,13 +45,17 @@ public class CheckStatusOfPullRequest extends BaseCommitWithPullRequestAction {
             logger.log(level, "{}{} - {}", node.fullName(), targetUrl, description);
         });
 
-        log.info("Pull request approval status: {}", pullRequest.reviewDecision);
+        logger.log(pullRequest.state == PullRequest.PullRequestState.OPEN ? LogLevel.DEBUG : LogLevel.INFO,
+                "State: {}", pullRequest.state);
+        log.info("Checks summary: {}", pullRequest.checksSummary());
+        log.info("Approval status: {}", pullRequest.reviewDecision);
+
         List<User> approverIds = pullRequest.approvers();
         String approverNames = approverIds.stream().map(user -> user.name).collect(Collectors.joining(", "));
         if (approverIds.isEmpty()) {
             log.info("Not approved by any reviewers yet");
         } else {
-            log.info("Pull request {} approved by {}", pullRequest.number, approverNames);
+            log.info("Approved by {}", approverNames);
         }
         statusPadder.infoTitle();
     }

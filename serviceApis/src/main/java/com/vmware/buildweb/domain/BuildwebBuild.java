@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import com.vmware.BuildStatus;
 
 import java.net.URI;
+import java.util.Date;
 
 /**
  * Represents information on a buildweb build.
@@ -29,6 +30,9 @@ public class BuildwebBuild {
 
     @SerializedName("_buildmachines_url")
     public String buildMachinesUrl;
+
+    @SerializedName("_elapsed_sec")
+    public long elapsedSeconds;
 
     public String relativeBuildTreePath() {
         URI buildUri = URI.create(buildTreeUrl);

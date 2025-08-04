@@ -39,7 +39,8 @@ public class SetCommitDetailsFromPullRequest extends BaseCommitWithPullRequestAc
         } else {
             draft.bugNumbers = parsedDraft.bugNumbers;
         }
-        draft.reviewedBy = parsedDraft.reviewedBy;
+        draft.reviewedBy = pullRequest.reviewers();
+        draft.codeOwners = pullRequest.codeOwners();
     }
 
     private void syncJobBuilds(ReviewRequestDraft draftConstructedFromReviewDetails) {

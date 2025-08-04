@@ -27,11 +27,21 @@ public class SelectMatchingPullRequest extends BaseCommitUsingGithubAction {
         log.info("Checking pull requests for request matching source branch {}", sourceMergeBranch);
 
         Optional<PullRequest> matchingRequest = github.getPullRequestForSourceBranch(githubConfig.githubRepoOwnerName,
-                githubConfig.githubRepoName, sourceMergeBranch);
+                githubConfig.githubRepoName, sourceMergeBranch, PullRequest.PullRequestState.OPEN);
         if (matchingRequest.isPresent()) {
-            log.info("Found matching pull request {}", matchingRequest.get().url);
+            log.info("Found matching open pull request {}", matchingRequest.get().url);
             draft.setGithubPullRequest(matchingRequest.get());
-        } else {
+        } else if (githubConfig.useAnyMatchingPullRequest) {
+            matchingRequest = github.getPullRequestForSourceBranch(githubConfig.githubRepoOwnerName,
+                    githubConfig.githubRepoName, sourceMergeBranch, null);
+
+            if (matchingRequest.isPresent()) {
+                log.info("Found matching {} pull request {}", matchingRequest.get().state, matchingRequest.get().url);
+                draft.setGithubPullRequest(matchingRequest.get());
+            }
+        }
+
+        if (!matchingRequest.isPresent()) {
             if (gitRepoConfig.failIfNoRequestFound) {
                 cancelWithMessage("no matching pull request was found");
             } else {

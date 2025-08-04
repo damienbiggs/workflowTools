@@ -6,9 +6,7 @@ import com.vmware.config.WorkflowConfig;
 import com.vmware.github.domain.PullRequest;
 import com.vmware.util.logging.Padder;
 
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @ActionDescription("This MUST be used first to parse the last commit if intending to edit anything in the last commit.")
 public class ReadLastCommit extends BaseCommitAction {
@@ -37,9 +35,8 @@ public class ReadLastCommit extends BaseCommitAction {
             PullRequest request = matchingPullRequest.get();
             log.info("Reading commit details from pull request {}", request.url);
             draft.fillValuesFromCommitText(request.asText(), commitConfig);
-            if (request.reviewRequests != null && request.reviewRequests.nodes != null) {
-                draft.reviewedBy = Arrays.stream(request.reviewRequests.nodes).map(node -> node.requestedReviewer.username()).collect(Collectors.joining(","));
-            }
+            draft.reviewedBy = request.reviewers();
+            draft.codeOwners = request.codeOwners();
             draft.setGithubPullRequest(request);
         } else {
             String commitText = readLastChange();
@@ -66,9 +63,11 @@ public class ReadLastCommit extends BaseCommitAction {
         }
         String sourceMergeBranch = determineSourceMergeBranch();
         log.debug("Checking pull requests for request matching source branch {}", sourceMergeBranch);
-
+        if (!serviceLocator.getGithub().canConnect()) {
+            return Optional.empty();
+        }
         return serviceLocator.getGithub().getPullRequestForSourceBranch(githubConfig.githubRepoOwnerName,
-                githubConfig.githubRepoName, sourceMergeBranch);
+                githubConfig.githubRepoName, sourceMergeBranch, PullRequest.PullRequestState.OPEN);
     }
 
 

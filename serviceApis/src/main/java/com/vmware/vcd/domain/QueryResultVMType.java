@@ -28,7 +28,7 @@ public class QueryResultVMType extends ResourceType implements InputListSelectio
 
     @Override
     public String getUiUrl() {
-        return "https//" + ipAddress;
+        return "https://" + ipAddress;
     }
 
     @Override

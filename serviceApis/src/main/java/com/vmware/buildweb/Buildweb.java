@@ -13,14 +13,17 @@ import com.vmware.jenkins.domain.JobBuild;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
 import com.vmware.util.IOUtils;
 import com.vmware.util.MatcherUtils;
+import com.vmware.util.StringUtils;
 import com.vmware.util.logging.Padder;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.vmware.BuildStatus.BUILDING;
 import static com.vmware.util.UrlUtils.addRelativePaths;
 
 /**
@@ -56,20 +59,29 @@ public class Buildweb extends AbstractRestBuildService {
         List<JobBuild> jobsToCheck = draft.jobBuildsMatchingUrl(urlToCheckFor);
         jobsToCheck.stream().filter(jobBuild -> jobBuild.matches(results))
                 .forEach(jobBuild -> {
-                    Padder buildPadder = new Padder("Buildweb build {} result {}", jobBuild.buildNumber(), jobBuild.status);
+                    String elapsedTime = jobBuild.duration != null ? " duration " + StringUtils.formatDuration(jobBuild.duration) : "";
+                    Padder buildPadder = new Padder("Buildweb build {} result {}{}", jobBuild.buildNumber(), jobBuild.status, elapsedTime);
                     buildPadder.infoTitle();
-                    log.info(getBuildOutput(jobBuild.buildNumber(), linesToShow));
+                    if (jobBuild.logsUrl != null) {
+                        log.info(IOUtils.tail(jobBuild.logsUrl, linesToShow));
+                    } else {
+                        log.info(getBuildOutput(jobBuild.buildNumber(), linesToShow));
+                    }
                     buildPadder.infoTitle();
                 });
     }
 
     public String getBuildOutput(String buildId, int maxLinesToTail) {
-        String logsUrl = getLogsUrl(buildId);
+        BuildwebBuild build = getSandboxBuild(buildId);
+        return getBuildOutput(build, maxLinesToTail);
+    }
+
+    public String getBuildOutput(BuildwebBuild build, int maxLinesToTail) {
+        String logsUrl = getLogsUrl(build);
         return logsUrl != null ? IOUtils.tail(logsUrl, maxLinesToTail) : "";
     }
 
-    public String getLogsUrl(String buildId) {
-        BuildwebBuild build = getSandboxBuild(buildId);
+    public String getLogsUrl(BuildwebBuild build) {
         if (build.buildStatus == BuildStatus.STARTING) {
             return null;
         }
@@ -117,11 +129,13 @@ public class Buildweb extends AbstractRestBuildService {
     }
 
     @Override
-    protected BuildStatus getResultForBuild(String url) {
-        BuildwebId buildwebId = new BuildwebId(MatcherUtils.singleMatchExpected(url, "/(\\w\\w/\\d++)"));
+    protected void updateResultInfoForBuild(JobBuild build) {
+        BuildwebId buildwebId = new BuildwebId(MatcherUtils.singleMatchExpected(build.url, "/(\\w\\w/\\d++)"));
         String buildApiUrl = baseUrl + buildwebId.buildApiPath();
-        BuildwebBuild build = get(buildApiUrl, BuildwebBuild.class);
-        return build.buildStatus;
+        BuildwebBuild buildDetails = get(buildApiUrl, BuildwebBuild.class);
+        build.status = buildDetails.buildStatus;
+        build.duration = TimeUnit.SECONDS.toMillis(buildDetails.elapsedSeconds);
+        build.logsUrl = getLogsUrl(buildDetails);
     }
 
     @Override

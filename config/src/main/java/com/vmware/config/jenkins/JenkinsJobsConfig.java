@@ -157,6 +157,9 @@ public class JenkinsJobsConfig {
 
         for (String presetParamName : presetParameters.keySet()) {
             String presetParamValue = presetParameters.get(presetParamName);
+            if (presetParamValue == null) {
+                throw new FatalException("No value set for param {}", presetParamName);
+            }
             if (!presetParamValue.startsWith("$PARAM:")) {
                 continue;
             }

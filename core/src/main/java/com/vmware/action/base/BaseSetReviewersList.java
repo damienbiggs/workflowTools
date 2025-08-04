@@ -1,6 +1,7 @@
 package com.vmware.action.base;
 
 import com.vmware.config.WorkflowConfig;
+import com.vmware.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -22,13 +23,16 @@ public abstract class BaseSetReviewersList extends BaseSetUsersList {
             log.info("Enter group name or list number as a reviewer to add entire review group");
             int count = 1;
             for (String reviewerGroupName : commitConfig.reviewerGroups.keySet()) {
-                log.info("[{}] {}: {}",count++,reviewerGroupName, commitConfig.reviewerGroups.get(reviewerGroupName).toString());
+                log.info("[{}] {}: {}", count++,reviewerGroupName, commitConfig.reviewerGroups.get(reviewerGroupName).toString());
             }
         } else {
             log.info("Reviewer groups can be added by setting the reviewerGroups property in an external config file");
         }
         if (draft.hasReviewers()) {
             log.info("Existing reviewer list: {}", draft.reviewedBy);
+        }
+        if (StringUtils.isNotBlank(draft.codeOwners)) {
+            log.info("Code owners list: {}", draft.codeOwners);
         }
 
         draft.reviewedBy = readUsers(autocompleteOptions, draft.reviewedBy, "Reviewers (blank means no reviewer)");

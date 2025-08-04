@@ -147,7 +147,13 @@ public class WorkflowConfigParser {
      * via the command line.
      */
     private void applySpecifiedConfigFiles(CommandLineArgumentsParser argsParser, WorkflowConfig internalConfig) {
-        String gitConfigFilePath = git.configValue("workflow.configFile");
+        String trackingBranch = git.getTrackingBranch();
+        String remoteName = trackingBranch != null ? trackingBranch.split("/")[0] : null;
+        String trackingBranchConfigPrefix = trackingBranch.replace('/', '.');
+        String trackingRemoteConfigFile = "workflow." + remoteName + ".configFile";
+        String trackingBranchConfigFile = "workflow." + trackingBranchConfigPrefix + ".configFile";
+
+        String gitConfigFilePath = git.configValue(trackingBranchConfigFile, trackingRemoteConfigFile, "workflow.configFile");
         if (StringUtils.isNotBlank(gitConfigFilePath)) {
             log.debug("Git config file: {}", gitConfigFilePath);
         }

@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -200,6 +201,20 @@ public class StringUtils {
             builder.append(value);
         }
         return builder.toString();
+    }
+
+    public static String formatDuration(long durationInMillis) {
+        if (durationInMillis > TimeUnit.HOURS.toMillis(1)) {
+            long hours = durationInMillis / TimeUnit.HOURS.toMillis(1);
+            long minutes = TimeUnit.MILLISECONDS.toMinutes(durationInMillis - TimeUnit.HOURS.toMillis(hours));
+            return hours + " hr " + minutes + " min";
+        } else if (durationInMillis > TimeUnit.MINUTES.toMillis(5)) {
+            return TimeUnit.MILLISECONDS.toMinutes(durationInMillis) + " min";
+        } else if (durationInMillis > TimeUnit.SECONDS.toMillis(5)) {
+            return TimeUnit.MILLISECONDS.toSeconds(durationInMillis) + " sec";
+        } else {
+            return durationInMillis + " ms";
+        }
     }
 
     public static String convertToDbName(String value) {

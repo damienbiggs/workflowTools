@@ -33,6 +33,7 @@ import com.vmware.http.request.body.RequestBodyFactory;
 import com.vmware.http.request.body.RequestBodyHandling;
 import com.vmware.http.ssl.WorkflowCertificateManager;
 import com.vmware.util.IOUtils;
+import com.vmware.util.StopwatchUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.ThreadUtils;
 import com.vmware.util.exception.FatalException;
@@ -129,10 +130,14 @@ public class HttpConnection {
     public <T> T executeApiRequest(HttpMethodType methodType, String url, Class<T> responseConversionClass, Object requestObject, RequestParam[] params) {
         Padder requestPadder = new Padder("{} {}", methodType.name(), url);
         requestPadder.debugTitle();
+        StopwatchUtils.Stopwatch stopwatch = StopwatchUtils.start();
         setupConnection(url, methodType, params);
         RequestBodyFactory.setRequestDataForConnection(this, requestObject);
-        T response = handleServerResponse(url, responseConversionClass, methodType, params);
-        requestPadder.debugTitle();;
+        String responseText = getResponseText(0, methodType, params);
+        activeConnection.disconnect();
+        T response = handleServerResponse(responseConversionClass, responseText);
+        log.debug("Total Execution time: {}ms", stopwatch.elapsedTime());
+        requestPadder.debugTitle();
         return response;
     }
 
@@ -261,12 +266,10 @@ public class HttpConnection {
         }
     }
 
-    private <T> T handleServerResponse(final String url, final Class<T> responseConversionClass, HttpMethodType methodType, RequestParam[] params) {
-        String responseText = getResponseText(0, methodType, params);
+    private <T> T handleServerResponse(final Class<T> responseConversionClass, String responseText) {
         if (responseConversionClass == HttpResponse.class) {
             return (T) new HttpResponse(responseText, activeConnection.getHeaderFields());
         }
-        activeConnection.disconnect();
         if (responseText.isEmpty() || responseConversionClass == null) {
             return null;
         } else {

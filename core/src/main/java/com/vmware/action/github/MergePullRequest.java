@@ -4,7 +4,6 @@ import com.vmware.action.base.BaseCommitWithPullRequestAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.github.domain.PullRequest;
-import com.vmware.util.exception.FatalException;
 
 @ActionDescription("Merge pull request in Github so that it is merged to the target branch.")
 public class MergePullRequest extends BaseCommitWithPullRequestAction {
@@ -14,15 +13,8 @@ public class MergePullRequest extends BaseCommitWithPullRequestAction {
 
     @Override
     public void process() {
-        log.info("Merging pull request {}", draft.requestUrl);
         PullRequest pullRequest = draft.getGithubPullRequest();
-
-        String upstreamRef = gitRepoConfig.defaultGitRemote + "/" + pullRequest.baseRefName;
-        int commitCount = git.getCommitCountSinceRef(upstreamRef);
-        if (commitCount != 1) {
-            throw new FatalException("Pull request {} has {} commits since {}. Please merge via UI. Can only merge via workflow tools if there is one commit",
-                    pullRequest.number, commitCount, upstreamRef);
-        }
-        github.mergePullRequest(pullRequest, githubConfig.mergeMethod, draft.summary, draft.toText(commitConfig, false, false, false));
+        log.info("Merging pull request {}", draft.requestUrl);
+        github.mergePullRequest(pullRequest, githubConfig.mergeMethod);
     }
 }

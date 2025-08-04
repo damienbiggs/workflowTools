@@ -562,7 +562,7 @@
       "DisplayOpenDiffNotes"
     ],
     "pullable": [
-      "selectPullRequest&&--fail-if-no-request-found",
+      "selectPullRequest&&--fail-if-no-request-found&&--use-any-matching-pull-request",
       "SetCommitDetailsFromPullRequest",
       "CheckStatusOfJenkinsBuilds",
       "DisplayBuildOutputForJenkinsJobs",
@@ -819,7 +819,7 @@
       "MergeChangesFromPullRequest"
     ],
     "openPullRequest": [
-      "selectPullRequest&&--fail-if-no-request-found",
+      "selectPullRequest&&--fail-if-no-request-found&&--use-any-matching-pull-request",
       "OpenRequest"
     ],
     "syncPullRequestFromCommit": [

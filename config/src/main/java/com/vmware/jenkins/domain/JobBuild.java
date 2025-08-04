@@ -57,6 +57,9 @@ public class JobBuild extends BaseDbClass implements InputListSelection {
 
     public Long duration;
 
+    @Expose(serialize = false, deserialize = false)
+    public String logsUrl;
+
     @DbSaveIgnore
     @Expose(serialize = false, deserialize = false)
     private boolean hasSavedTestResults;

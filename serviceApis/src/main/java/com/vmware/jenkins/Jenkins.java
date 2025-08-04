@@ -32,6 +32,7 @@ import com.vmware.util.logging.Padder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -207,7 +208,8 @@ public class Jenkins extends AbstractRestBuildService {
         List<JobBuild> jobsToCheck = draft.jobBuildsMatchingUrl(urlToCheckFor);
         jobsToCheck.stream().filter(build -> build.matches(buildTypes))
                 .forEach(jobBuild -> {
-                    Padder buildPadder = new Padder("Jenkins build {} status {}", jobBuild.buildNumber(), jobBuild.status);
+                    String elapsedTime = jobBuild.duration != null ? " duration " + StringUtils.formatDuration(jobBuild.duration) : "";
+                    Padder buildPadder = new Padder("{} Build {} status {}{}", jobBuild.name, jobBuild.buildNumber(), jobBuild.status, elapsedTime);
                     buildPadder.infoTitle();
                     if (jobBuild.status != BuildStatus.FAILURE && jobBuild.status != BuildStatus.UNSTABLE) {
                         String consoleOutput = tail(jobBuild.logTextUrl(), linesToShow);
@@ -242,10 +244,15 @@ public class Jenkins extends AbstractRestBuildService {
     }
 
     @Override
-    protected BuildStatus getResultForBuild(String url) {
-        String jobApiUrl = UrlUtils.addTrailingSlash(url) + "api/json";
+    protected void updateResultInfoForBuild(JobBuild build) {
+        String jobApiUrl = UrlUtils.addTrailingSlash(build.url) + "api/json";
         JobBuild buildDetails = this.getJobBuildDetails(jobApiUrl);
-        return buildDetails.realResult();
+        build.status = buildDetails.realResult();
+        if (build.status == BuildStatus.STARTING || build.status == BuildStatus.BUILDING) {
+            build.duration = new Date().getTime() - buildDetails.buildTimestamp;
+        } else {
+            build.duration = buildDetails.duration;
+        }
     }
 
     @Override

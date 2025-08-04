@@ -2,6 +2,7 @@ package com.vmware.github;
 
 import java.io.File;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,6 +63,18 @@ public class Github extends AbstractRestService {
         }
     }
 
+    public boolean canConnect() {
+        try {
+            connection.get(baseUrl, String.class);
+            return true;
+        } catch (FatalException fe) {
+            if (fe.getCause() instanceof UnknownHostException) {
+                return false;
+            }
+            throw fe;
+        }
+    }
+
     public List<User> searchUsers(String companyName, String query) {
         GraphqlResponse response = postGraphql("/githubGraphql/searchUsers.txt",
                 "query=" + query, "companyName=" + companyName);
@@ -87,14 +100,13 @@ public class Github extends AbstractRestService {
     }
 
     public PullRequest createPullRequest(PullRequest pullRequest) {
-        setupAuthenticatedConnection();
         GraphqlResponse repoResponse = postGraphql("/githubGraphql/repository.txt",
                 "repoOwnerName=" + pullRequest.repoOwner(), "repoName=" + pullRequest.repoName());
         pullRequest.repositoryId = repoResponse.data.repository.id;
 
         String input = inputSerializer.serialize(pullRequest);
         String pullRequestResponse = new ClasspathResource("/githubGraphql/fullPullRequestResponse.txt", this.getClass()).getText();
-        GraphqlResponse response = postGraphql("/githubGraphql/mutatePullRequest.txt",
+        GraphqlResponse response = postGraphql("/githubGraphql/mutatePullRequest.txt", createPullRequest,
                 "mutationName=" + createPullRequest, "input=" + input,
                 "pullRequestResponse=" + pullRequestResponse);
         return response.data.mutatedPullRequest.pullRequest;
@@ -107,10 +119,11 @@ public class Github extends AbstractRestService {
         mutatePullRequest(pullRequest.id, updatePullRequest, updateRequest);
     }
 
-    public Optional<PullRequest> getPullRequestForSourceBranch(String ownerName, String repoName, String sourceBranch) {
+    public Optional<PullRequest> getPullRequestForSourceBranch(String ownerName, String repoName, String sourceBranch, PullRequest.PullRequestState state) {
         String pullRequestResponse = new ClasspathResource("/githubGraphql/fullPullRequestResponse.txt", this.getClass()).getText();
+        String stateParam = state != null ? "stateParam=states: " + state + ", " : "stateParam=";
         GraphqlResponse repository = postGraphql("/githubGraphql/pullRequests.txt",
-                "repoOwnerName=" + ownerName, "repoName=" + repoName, "headRef=" + sourceBranch, "pullRequestResponse=" + pullRequestResponse);
+                "repoOwnerName=" + ownerName, "repoName=" + repoName, stateParam, "headRef=" + sourceBranch, "pullRequestResponse=" + pullRequestResponse);
         return Arrays.stream(repository.data.repository.pullRequests.nodes).findFirst();
     }
 
@@ -121,24 +134,24 @@ public class Github extends AbstractRestService {
         return repository.data.repository.pullRequest;
     }
 
-    public void mergePullRequest(PullRequest pullRequest, String mergeMethod, String commitTitle, String commitMessage) {
-        setupAuthenticatedConnection();
+    public void mergePullRequest(PullRequest pullRequest, String mergeMethod) {
         PullMergeRequest pullMergeRequest = new PullMergeRequest();
         pullMergeRequest.pullRequestId = pullRequest.id;
         pullMergeRequest.mergeMethod = mergeMethod != null ? PullMergeRequest.MergeMethod.valueOf(mergeMethod.toUpperCase()) : null;
-        pullMergeRequest.commitHeadline = commitTitle;
-        pullMergeRequest.commitBody = commitMessage;
+        pullMergeRequest.commitHeadline = pullRequest.title;
+        pullMergeRequest.commitBody = pullRequest.body;
         pullMergeRequest.expectedHeadOid = pullRequest.headRefOid;
 
         PullRequest updatedPullRequest = mutatePullRequest(pullRequest.id, mergePullRequest, pullMergeRequest);
-        log.debug("Merge result: {} Sha: {}", updatedPullRequest.merged, updatedPullRequest.headRefOid);
-        if (!updatedPullRequest.merged) {
+        log.debug("Merge result: {} Sha: {}", updatedPullRequest.state, updatedPullRequest.headRefOid);
+        if (updatedPullRequest.state != PullRequest.PullRequestState.MERGED) {
             throw new FatalException("Failed to merge pull request {}", pullRequest.number);
+        } else {
+            log.info("Successfully merged pull request {}", pullRequest.number);
         }
     }
 
     public void updatePullRequestDetails(PullRequest pullRequest) {
-        setupAuthenticatedConnection();
         PullRequest pullRequestForUpdate = new PullRequest(pullRequest.id);
         pullRequestForUpdate.title = pullRequest.title;
         pullRequestForUpdate.body = pullRequest.body;
@@ -147,7 +160,7 @@ public class Github extends AbstractRestService {
 
     public void closePullRequest(PullRequest pullRequest) {
         PullRequest updatedPullRequest = mutatePullRequest(pullRequest, closePullRequest);
-        if (!updatedPullRequest.closed) {
+        if (updatedPullRequest.state != PullRequest.PullRequestState.CLOSED) {
             throw new FatalException("Failed to close pull request {}", pullRequest.number);
         }
     }
@@ -171,11 +184,12 @@ public class Github extends AbstractRestService {
     }
 
     public void rerunFailedCheckRun(PullRequest pullRequest, String id) {
-        post(UrlUtils.addRelativePaths(apiUrl, "repos", pullRequest.repoOwner(), pullRequest.repoName(), "check-runs", id, "rerequest"), null);
+        post(UrlUtils.addRelativePaths(apiUrl, "repos", pullRequest.repoOwner(), pullRequest.repoName(), "actions/jobs", id, "rerun"), null);
     }
 
     public void updateReviewersForPullRequest(PullRequest pullRequest, List<String> usernames) {
-        List<User> users = Arrays.stream(pullRequest.reviewRequests.nodes).map(node -> node.requestedReviewer).collect(Collectors.toList());
+        List<User> users = Arrays.stream(pullRequest.reviewRequests.nodes).filter(node -> !node.asCodeOwner)
+                .map(node -> node.requestedReviewer).collect(Collectors.toList());
         boolean usersRemoved = users.removeIf(reviewer -> usernames.stream().noneMatch(username -> username.equals(reviewer.username())));
         List<User> usersToAdd = usernames.stream().filter(username -> users.stream().noneMatch(reviewer -> reviewer.username().equals(username)))
                 .map(username -> getUserOrTeam(pullRequest.repoOwner(), username)).collect(Collectors.toList());
@@ -227,10 +241,10 @@ public class Github extends AbstractRestService {
         List<String> paramList = new ArrayList<>();
         paramList.add("input=" + inputSerializer.serialize(inputObject));
         paramList.add("mutationName=" + mutationName.name());
-        paramList.add("pullRequestResponse={id, number, headRefOid, isDraft, merged, closed}");
+        paramList.add("pullRequestResponse={id, number, headRefOid, isDraft, state}");
         String fileName = "/githubGraphql/mutatePullRequest.txt";
 
-        GraphqlResponse response = postGraphql(fileName, paramList.toArray(new String[0]));
+        GraphqlResponse response = postGraphql(fileName, mutationName, paramList.toArray(new String[0]));
 
         PullRequest updatedPullRequest = response.data.mutatedPullRequest.pullRequest;
         if (!Objects.equals(updatedPullRequest.id, pullRequestId)) {
@@ -240,14 +254,20 @@ public class Github extends AbstractRestService {
     }
 
     private GraphqlResponse postGraphql(String fileName, String... params) {
+        return postGraphql(fileName, null, params);
+    }
+
+    private GraphqlResponse postGraphql(String fileName, MutationName mutationName, String... params) {
         Map<String, String> paramMap = Arrays.stream(params).map(param -> StringUtils.splitOnlyOnce(param, "="))
                 .collect(Collectors.toMap(param -> param[0], param -> param[1]));
         String query = new ClasspathResource(fileName, this.getClass()).getText();
         GraphqlRequest request = new GraphqlRequest(query);
-        paramMap.forEach((key, value) -> request.query = request.query.replace("${" + key + "}", value));
+        paramMap.entrySet().stream().filter(entry -> entry.getValue() != null)
+                .forEach(entry -> request.query = request.query.replace("${" + entry.getKey() + "}", entry.getValue()));
         log.trace("Graphql request: {}", request.query);
 
-        GraphqlResponse response = post(graphqlUrl, GraphqlResponse.class, request, new RequestHeader("Source", StringUtils.substringAfterLast(fileName, "/")));
+        String source = mutationName != null ? mutationName.name() : StringUtils.substringAfterLast(fileName, "/");
+        GraphqlResponse response = post(graphqlUrl, GraphqlResponse.class, request, new RequestHeader("Source", source));
         if (response.errors != null && response.errors.length > 0) {
             log.debug("{}\nfailed with errors\n{} ", request.query, Arrays.toString(response.errors));
             throw new FatalException(Arrays.stream(response.errors).map(error -> error.message).collect(Collectors.joining(", ")));
