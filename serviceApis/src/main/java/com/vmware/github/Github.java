@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import com.vmware.github.domain.RequestedReviewers;
 import com.vmware.github.domain.User;
 import com.vmware.http.HttpConnection;
 import com.vmware.http.cookie.ApiAuthentication;
+import com.vmware.http.exception.ForbiddenException;
 import com.vmware.http.graphql.InputSerializer;
 import com.vmware.http.json.ConfiguredGsonBuilder;
 import com.vmware.http.request.RequestHeader;
@@ -184,7 +186,8 @@ public class Github extends AbstractRestService {
     }
 
     public void rerunFailedCheckRun(PullRequest pullRequest, String id) {
-        post(UrlUtils.addRelativePaths(apiUrl, "repos", pullRequest.repoOwner(), pullRequest.repoName(), "actions/jobs", id, "rerun"), null);
+        post(UrlUtils.addRelativePaths(apiUrl, "repos", pullRequest.repoOwner(), pullRequest.repoName(), "actions/jobs", id, "rerun"), null, null,
+                Collections.singletonList(ForbiddenException.class));
     }
 
     public void updateReviewersForPullRequest(PullRequest pullRequest, List<String> usernames) {

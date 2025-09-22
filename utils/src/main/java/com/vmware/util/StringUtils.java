@@ -311,6 +311,15 @@ public class StringUtils {
         return value.substring(value.lastIndexOf(valueToCheckFor) + valueToCheckFor.length());
     }
 
+    public static String substringBeforeNthMatch(String value, String valueToCheckFor, int count) {
+        int index = indexOrNthOccurence(value, valueToCheckFor, count);
+        if (index == -1) {
+            return value;
+        } else {
+            return value.substring(0, index);
+        }
+    }
+
     public static int indexOrNthOccurence(String text, String searchText, int count) {
         int index = text.indexOf(searchText);
         int counter = 1;

@@ -154,6 +154,14 @@ public class TestResult extends BaseDbClass {
         }
     }
 
+    public String fullTestNameWithLimitedExceptionInfo() {
+        if (StringUtils.isEmpty(exception)) {
+            return fullTestNameWithPackage() + " " + status;
+        } else {
+            return fullTestNameWithPackage() + " " + status + System.lineSeparator() + StringUtils.substringBeforeNthMatch(exception, "\n", 15) + System.lineSeparator();
+        }
+    }
+
     public String fullTestNameForDisplay() {
         String fullTestName = JUNIT_ROOT.equals(packagePath) ? name : classAndTestName();
         if (status == TestStatus.SKIP && similarSkips != null && similarSkips > 0) {

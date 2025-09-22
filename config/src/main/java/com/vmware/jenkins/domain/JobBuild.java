@@ -46,12 +46,6 @@ public class JobBuild extends BaseDbClass implements InputListSelection {
     @SerializedName("result")
     public BuildStatus status;
 
-    @Expose(serialize = false, deserialize = false)
-    public int failedCount;
-
-    @Expose(serialize = false, deserialize = false)
-    public int skippedCount;
-
     @SerializedName("timestamp")
     public long buildTimestamp;
 
@@ -156,8 +150,8 @@ public class JobBuild extends BaseDbClass implements InputListSelection {
         return UrlUtils.addRelativePaths(url, "testngreports");
     }
 
-    public String getTestReportsApiUrl() {
-        return UrlUtils.addRelativePaths(getTestReportsUIUrl(), "api/json?depth=3");
+    public String getTestReportsApiUrl(int depth) {
+        return UrlUtils.addRelativePaths(getTestReportsUIUrl(), "api/json?depth=" + depth);
     }
 
     public String fullUrlForArtifact(JobBuildArtifact artifact) {

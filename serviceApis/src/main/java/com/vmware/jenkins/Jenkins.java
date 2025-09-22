@@ -183,7 +183,7 @@ public class Jenkins extends AbstractRestBuildService {
     }
 
     private String determineTestReportsApiUrl(JobBuild jobBuild) {
-        String testReportsApiUrl = jobBuild.getTestReportsApiUrl();
+        String testReportsApiUrl = jobBuild.getTestReportsApiUrl(3);
         if (jobBuild.artifacts != null && !testReportUrlOverrides.isEmpty()) {
             Optional<Map.Entry<String, String>> testUrlOverride = testReportUrlOverrides.entrySet().stream()
                     .filter(entry -> Arrays.stream(jobBuild.artifacts)
@@ -215,15 +215,25 @@ public class Jenkins extends AbstractRestBuildService {
                         String consoleOutput = tail(jobBuild.logTextUrl(), linesToShow);
                         log.info(consoleOutput);
                     } else {
-                        List<TestResult> failedTests = getJobBuildTestResults(jobBuild).failedTestResults();
+                        TestResults results = getJobBuildTestResults(jobBuild);
+                        List<TestResult> failedTests = results.failedTestResults();
                         if (failedTests.isEmpty()) {
                             log.info("No failed tests found, showing last {} lines of log text", linesToShow);
                             String consoleOutput = tail(jobBuild.logTextUrl(), linesToShow);
                             log.info(consoleOutput);
                         } else {
-                            List<String> failedTestsText = failedTests.stream().map(TestResult::fullTestNameWithExceptionInfo).collect(Collectors.toList());
-                            IntStream.range(0, Math.min(linesToShow, failedTests.size())).forEach(index -> log.info(failedTestsText.get(index)));
+                            String failedTestsText = failedTests.stream()
+                                    .filter(result -> result.status == TestResult.TestStatus.FAIL)
+                                    .map(TestResult::fullTestNameWithLimitedExceptionInfo).collect(Collectors.joining("\n"));
+                            log.info(StringUtils.substringBeforeNthMatch(failedTestsText, "\n", linesToShow));
                         }
+
+                        Padder summaryPadder = new Padder("Summary");
+                        summaryPadder.infoTitle();
+                        failedTests.stream().limit(linesToShow).forEach(test -> log.info("{} {}", test.fullPackageAndTestName(), test.status));
+                        log.info("{} failed config, {} skipped config, {} failed tests, {} skipped tests",
+                                results.failConfig, results.skipConfig, results.failCount, results.skipCount);
+                        summaryPadder.infoTitle();
                     }
                     buildPadder.infoTitle();
                 });

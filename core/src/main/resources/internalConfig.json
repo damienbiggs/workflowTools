@@ -801,6 +801,10 @@
       "CreatePullRequestIfNeeded&&--mark-as-draft=true",
       "CopyRequestUrlToClipboard"
     ],
+    "copyPullRequestUrl": [
+      "selectPullRequest&&--fail-if-no-request-found",
+      "CopyRequestUrlToClipboard"
+    ],
     "updatePullRequest" : [
       "updatePullRequestDetails",
       "pushCommitToMergeBranch"
