@@ -544,6 +544,7 @@
       "DisplayBuildOutputForJenkinsJobs",
       "CheckStatusOfBuildwebBuilds",
       "DisplayBuildOutputForBuildwebBuilds",
+      "DisplayBuildResults",
       "CheckCommitForCheckstyleErrors",
       "CheckStatusOfReviewShipIts",
       "DisplayOpenReviewComments",
@@ -556,6 +557,7 @@
       "CheckStatusOfBuildwebBuilds",
       "DisplayBuildOutputForBuildwebBuilds",
       "AmendCommit",
+      "DisplayBuildResults",
       "CheckCommitForCheckstyleErrors",
       "SelectMatchingMergeRequest&&--fail-if-no-request-found",
       "CheckStatusOfMergeRequestApprovals",
@@ -568,6 +570,7 @@
       "DisplayBuildOutputForJenkinsJobs",
       "CheckStatusOfBuildwebBuilds",
       "DisplayBuildOutputForBuildwebBuilds",
+      "DisplayBuildResults",
       "CheckCommitForCheckstyleErrors",
       "DisplayOpenPullRequestReviewComments",
       "CheckStatusOfPullRequest"
@@ -1073,6 +1076,11 @@
     "openVcdTenant": [
       "selectVcdSite",
       "OpenVcdTenantApp"
+    ],
+    "updatePackageForPod": [
+      "ReadLastCommit",
+      "UpdatePackageForPod",
+      "CheckStatusOfPod"
     ],
     "openVm": [
       "selectVappVm",

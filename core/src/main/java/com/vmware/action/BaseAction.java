@@ -22,6 +22,7 @@ import com.vmware.config.section.GithubConfig;
 import com.vmware.config.section.GitlabConfig;
 import com.vmware.config.section.JenkinsConfig;
 import com.vmware.config.section.JiraConfig;
+import com.vmware.config.section.KubectlConfig;
 import com.vmware.config.section.PatchConfig;
 import com.vmware.config.section.PerforceClientConfig;
 import com.vmware.config.section.ReviewBoardConfig;
@@ -66,6 +67,7 @@ public abstract class BaseAction implements Action {
     protected final CommandLineConfig commandLineConfig;
     protected final FileSystemConfig fileSystemConfig;
     protected final SslConfig sslConfig;
+    protected final KubectlConfig kubectlConfig;
 
     protected ServiceLocator serviceLocator;
 
@@ -105,6 +107,7 @@ public abstract class BaseAction implements Action {
         this.sslConfig = config.sslConfig;
         this.replacementVariables = config.replacementVariables;
         this.ssoConfig = config.ssoConfig;
+        this.kubectlConfig = config.kubectlConfig;
     }
 
     public void checkIfWorkflowShouldBeFailed() {
@@ -189,7 +192,7 @@ public abstract class BaseAction implements Action {
     }
 
     protected void exitDueToFailureCheck(String reason) {
-        cancelWithMessage(LogLevel.ERROR, "Workflow failed by action {} as {}", this.getClass().getSimpleName(), reason);
+        cancelWithMessage(LogLevel.ERROR, "{} for action {}", reason, this.getClass().getSimpleName());
     }
 
     protected void skipActionDueTo(String reason, Object... arguments) {
@@ -228,8 +231,8 @@ public abstract class BaseAction implements Action {
         WorkflowField matchingField = config.getConfigurableFields().getFieldByName(propertyName);
         if (matchingField.getValue(config) == null) {
             String commandLineParam = matchingField.commandLineParameter();
-            String paramText = commandLineParam != null ? " (" + commandLineParam + ") " : "";
-            exitDueToFailureCheck("property " + propertyName + paramText + " not set");
+            String paramText = commandLineParam != null ? " (" + commandLineParam + ")" : "";
+            exitDueToFailureCheck("property " + propertyName + paramText + " is not set");
         }
     }
 

@@ -34,6 +34,9 @@ public class BuildwebBuild {
     @SerializedName("_elapsed_sec")
     public long elapsedSeconds;
 
+    @SerializedName("_deliverables_url")
+    public String deliverablesUrl;
+
     public String relativeBuildTreePath() {
         URI buildUri = URI.create(buildTreeUrl);
         return buildUri.getPath();

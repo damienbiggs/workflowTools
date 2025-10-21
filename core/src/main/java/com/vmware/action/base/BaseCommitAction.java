@@ -134,7 +134,8 @@ public abstract class BaseCommitAction extends BaseAction {
                 throw new FatalException("No build number found in url " + sandboxBuild.url);
             }
         } else {
-            buildId = InputUtils.readValueUntilNotBlank(buildDisplayName + " build number");
+            log.info("No sandbox build found for label '{}', enter one manually", buildDisplayName);
+            buildId = InputUtils.readValueUntilNotBlank("Sandbox build number");
         }
         return buildId;
     }

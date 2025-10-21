@@ -6,18 +6,18 @@ import com.vmware.http.request.DeserializedName;
 import com.vmware.http.request.PostDeserializeHandler;
 import com.vmware.util.ReflectionUtils;
 import com.vmware.util.IOUtils;
+import com.vmware.util.StringUtils;
 import com.vmware.util.complexenum.ComplexEnum;
 import com.vmware.util.complexenum.ComplexEnumSelector;
-import com.vmware.util.exception.RuntimeReflectiveOperationException;
+import com.vmware.util.exception.FatalException;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import static java.lang.String.format;
 
 /**
  * Constructs an object to and from a map of values.
@@ -52,6 +52,64 @@ public class MapObjectConverter {
     }
 
     public <T> T fromMap(Map<String, Object> values, Class<T> objectClass) {
+        return fromMap(values, objectClass, "", 0, false);
+    }
+
+    public <T> T fromMap(Object values, Class<T> objectClass, String path, int pathIndex, boolean failIfNotFound) {
+        String fullPropertyPath = StringUtils.substringAfterNthMatch(path, ".", pathIndex);
+        String propertyName = StringUtils.substringBefore(fullPropertyPath, ".");
+        if (StringUtils.isNotBlank(propertyName)) {
+            String workingPath = StringUtils.substringBefore(path, fullPropertyPath);
+            workingPath += StringUtils.isNotBlank(workingPath) ? "." + propertyName : propertyName;
+            Object value = null;
+
+            String listItem = StringUtils.substringBetween(propertyName, "[", "]");
+            if (StringUtils.isNotBlank(listItem)) {
+                propertyName = StringUtils.substringBefore(propertyName, "[");
+            }
+            if (StringUtils.isNotBlank(propertyName)) {
+                value = ((Map) values).get(propertyName);
+            } else if (StringUtils.isNotBlank(listItem)) {
+                value = values;
+            }
+            if (value == null && failIfNotFound) {
+                throw new FatalException("Failed to find path {}", workingPath);
+            } else if (value == null) {
+                return null;
+            }
+
+            if (StringUtils.isNotBlank(listItem) && !(value instanceof List)) {
+                throw new FatalException("{} is meant for a list, not a {}", workingPath, value.getClass().getName());
+            } else if (StringUtils.isNotBlank(listItem) && value instanceof List) {
+                List listValues = (List) value;
+                if (StringUtils.isInteger(propertyName)) {
+                    value = listValues.get(Integer.parseInt(propertyName));
+                } else if (listItem.contains("=")) {
+                    String[] pieces = listItem.split("=");
+                    value = listValues.stream().filter(val -> {
+                        Map listValue = (Map) val;
+                        return pieces[1].equals(listValue.get(pieces[0]));
+                    }).findFirst().orElse(null);
+                } else {
+                    throw new FatalException("Cannot parse list item {}", workingPath);
+                }
+                if (value == null && failIfNotFound) {
+                    throw new FatalException("Failed to find path {}", workingPath);
+                } else if (value == null) {
+                    return null;
+                }
+            } else if (!(value instanceof Map)) {
+                throw new FatalException("Cannot parse value of type {}", value.getClass().getName());
+            }
+
+            return fromMap(value, objectClass, path, ++pathIndex, failIfNotFound);
+        }
+
+        if ((objectClass == Map.class || objectClass == List.class)) {
+            return (T) values;
+        }
+
+        Map valuesMap = (Map) values;
         Object createdObject = ReflectionUtils.newInstance(objectClass);
         for (Field field : objectClass.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
@@ -64,11 +122,11 @@ public class MapObjectConverter {
             }
 
             String nameToUse = determineNameToUseForField(field);
-            if (!values.containsKey(nameToUse)) {
+            if (!valuesMap.containsKey(nameToUse)) {
                 continue;
             }
 
-            Object valueToConvert = values.get(nameToUse);
+            Object valueToConvert = valuesMap.get(nameToUse);
             setFieldValue(createdObject, field, valueToConvert);
         }
 

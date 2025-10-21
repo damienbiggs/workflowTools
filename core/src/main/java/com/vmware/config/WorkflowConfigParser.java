@@ -10,7 +10,6 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import com.vmware.AddBuildInfoToInternalConfig;
 import com.vmware.config.commandLine.CommandLineArgumentsParser;
 import com.vmware.config.section.PerforceClientConfig;
 import com.vmware.http.HttpConnection;
@@ -19,7 +18,6 @@ import com.vmware.util.ClasspathResource;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.exception.RuntimeIOException;
-import com.vmware.util.logging.Padder;
 import com.vmware.util.scm.Git;
 import com.vmware.util.scm.Perforce;
 

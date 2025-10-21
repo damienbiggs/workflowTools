@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.vmware.BuildStatus.BUILDING;
 import static com.vmware.util.UrlUtils.addRelativePaths;
 
 /**
@@ -51,6 +50,10 @@ public class Buildweb extends AbstractRestBuildService {
         String buildType = idParts.length == 2 ? idParts[0] : "sb";
         String idForBuild = idParts.length == 2 ? idParts[1] : id;
         return get(addRelativePaths(baseUrl, buildType, "build", idForBuild), BuildwebBuild.class);
+    }
+
+    public <T> T getBuildSubSection(String url, Class<T> response) {
+        return get(addRelativePaths(baseUrl, url), response);
     }
 
     public void logOutputForBuilds(ReviewRequestDraft draft, int linesToShow, BuildStatus... results) {
@@ -85,7 +88,7 @@ public class Buildweb extends AbstractRestBuildService {
         if (build.buildStatus == BuildStatus.STARTING) {
             return null;
         }
-        BuildMachines machines = get(addRelativePaths(baseUrl, build.buildMachinesUrl), BuildMachines.class);
+        BuildMachines machines = getBuildSubSection(build.buildMachinesUrl, BuildMachines.class);
         BuildMachine buildMachine = machines.realBuildMachine();
         String logsUrl;
         if (build.buildStatus == BuildStatus.BUILDING) {

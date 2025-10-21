@@ -345,13 +345,13 @@ public class ReviewRequestDraft extends BaseEntity {
         return StringUtils.splitAndTrim(bugNumbers, ",");
     }
 
-    public List<JobBuild> jobBuildsMatchingUrl(String url) {
-        if (StringUtils.isEmpty(url)) {
+    public List<JobBuild> jobBuildsMatchingUrl(String... urls) {
+        if (urls.length == 0) {
             return Collections.emptyList();
         }
         List<JobBuild> builds = new ArrayList<>();
         for (JobBuild buildToCheck : jobBuilds) {
-            if (buildToCheck.containsUrl(url)) {
+            if (Arrays.stream(urls).anyMatch(buildToCheck::containsUrl)) {
                 builds.add(buildToCheck);
             }
         }

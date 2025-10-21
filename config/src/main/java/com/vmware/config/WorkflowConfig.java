@@ -39,6 +39,7 @@ import com.vmware.config.section.GithubConfig;
 import com.vmware.config.section.GitlabConfig;
 import com.vmware.config.section.JenkinsConfig;
 import com.vmware.config.section.JiraConfig;
+import com.vmware.config.section.KubectlConfig;
 import com.vmware.config.section.LoggingConfig;
 import com.vmware.config.section.PatchConfig;
 import com.vmware.config.section.PerforceClientConfig;
@@ -141,6 +142,9 @@ public class WorkflowConfig {
 
     @SectionConfig
     public SsoConfig ssoConfig;
+
+    @SectionConfig
+    public KubectlConfig kubectlConfig;
 
     @ConfigurableProperty(help = "Information about the the git commit that this version of workflow tools was built from")
     public Map<String, String> buildInfo;

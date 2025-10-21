@@ -24,7 +24,7 @@ public class SelectMatchingPullRequest extends BaseCommitUsingGithubAction {
     @Override
     public void process() {
         String sourceMergeBranch = determineSourceMergeBranch();
-        log.info("Checking pull requests for request matching source branch {}", sourceMergeBranch);
+        log.debug("Checking pull requests for request matching source branch {}", sourceMergeBranch);
 
         Optional<PullRequest> matchingRequest = github.getPullRequestForSourceBranch(githubConfig.githubRepoOwnerName,
                 githubConfig.githubRepoName, sourceMergeBranch, PullRequest.PullRequestState.OPEN);
@@ -43,9 +43,9 @@ public class SelectMatchingPullRequest extends BaseCommitUsingGithubAction {
 
         if (!matchingRequest.isPresent()) {
             if (gitRepoConfig.failIfNoRequestFound) {
-                cancelWithMessage("no matching pull request was found");
+                cancelWithMessage("no matching pull request was found for source branch {}", sourceMergeBranch);
             } else {
-                log.info("Failed to find matching pull request");
+                log.info("Failed to find matching pull request for source branch {}", sourceMergeBranch);
             }
         }
     }

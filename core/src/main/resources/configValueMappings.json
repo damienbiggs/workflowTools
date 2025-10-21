@@ -27,8 +27,16 @@
     "--vcd-admin-username",
     "--source-url"
   ],
+  "CheckStatusOfPod": [
+    "--pod-name",
+    "--namespace",
+    "--kube-config"
+  ],
   "WaitForMergeRequestToBeUpdated": [
     "--wait-time"
+  ],
+  "OpenBuildPage": [
+    "--job-display-names"
   ],
   "GenerateReviewStats": [
     "--file-count-ranges",
@@ -366,6 +374,18 @@
   "PushToMergeBranch": [
     "--force-push"
   ],
+  "UpdatePackageForPod": [
+    "--buildweb-username",
+    "--buildweb-log-file-name",
+    "--buildweb-api-url",
+    "--registry-url",
+    "--pod-name",
+    "--package-update-path",
+    "--build-display-name",
+    "--sandbox-build-number",
+    "--namespace",
+    "--kube-config"
+  ],
   "ParseText": [
     "--output-variable-name",
     "--input-text",
@@ -499,6 +519,9 @@
   ],
   "RemoveReviewUrl": [
     "--always-include-review-url"
+  ],
+  "OpenBuildConsolePage": [
+    "--job-display-names"
   ],
   "ReadPropertyAsVariable": [
     "--output-variable-name",

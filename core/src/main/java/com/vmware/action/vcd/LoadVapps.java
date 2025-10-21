@@ -13,8 +13,6 @@ import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.http.json.ConfiguredGsonBuilder;
 import com.vmware.util.StringUtils;
-import com.vmware.vcd.domain.QueryResultVMType;
-import com.vmware.vcd.domain.QueryResultVMsType;
 import com.vmware.vcd.domain.QueryResultVappType;
 import com.vmware.vcd.domain.QueryResultVappsType;
 

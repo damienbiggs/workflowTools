@@ -1,21 +1,17 @@
 package com.vmware.action.filesystem;
 
 import com.google.gson.Gson;
-import com.vmware.action.base.BaseVappAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.http.json.ConfiguredGsonBuilder;
-import com.vmware.util.StringUtils;
 import com.vmware.util.db.DbUtils;
 import com.vmware.util.logging.DynamicLogger;
 import com.vmware.util.logging.LogLevel;
-import com.vmware.vcd.domain.Sites;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Stream;
 
 @ActionDescription("Executes the specified sql statement against the configured database. Assumes that it is an update command.")
 public class ExecuteSelectSqlStatementAsJson extends ExecuteSqlStatement {

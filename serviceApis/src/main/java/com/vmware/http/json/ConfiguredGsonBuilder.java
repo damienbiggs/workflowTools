@@ -4,6 +4,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.ToNumberPolicy;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.config.WorkflowConfigMapper;
 import com.vmware.config.jira.IssueTypeDefinition;
@@ -39,6 +40,7 @@ public class ConfiguredGsonBuilder {
         ImprovedExclusionStrategy serializationExclusionStrategy = new ImprovedExclusionStrategy(true);
         ImprovedExclusionStrategy deserializationExclusionStrategy = new ImprovedExclusionStrategy(false);
         this.builder = new GsonBuilder()
+                .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
                 .addSerializationExclusionStrategy(serializationExclusionStrategy)
                 .addDeserializationExclusionStrategy(deserializationExclusionStrategy)
                 .registerTypeAdapterFactory(new PostDeserializeTypeAdapterFactory())

@@ -73,6 +73,11 @@ public class CommandLineUtils {
         return executeCommand(workingDirectory, null, command, inputText, logResultOnly, logLevel);
     }
 
+    public static String executeCommand(Map<String, String> environmentVariables,
+                                        String command, String inputText, LogLevel logLevel) {
+        return executeCommand(null, environmentVariables, command, inputText, false, logLevel);
+    }
+
     public static String executeCommand(File workingDirectory, Map<String, String> environmentVariables,
                                         String command, String inputText, boolean logResultOnly, LogLevel logLevel) {
         Padder titlePadder = new Padder(command);

@@ -13,7 +13,8 @@ public enum BuildStatus {
     ABORTED,
     BUILDING,
     STARTING,
-    MARKED_FOR_DELETION;
+    MARKED_FOR_DELETION,
+    UNKNOWN;
 
     public static String generateResultPattern() {
         String patternValues = StringUtils.appendWithDelimiter("", EnumSet.allOf(BuildStatus.class), "|");

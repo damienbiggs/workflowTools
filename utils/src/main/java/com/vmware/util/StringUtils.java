@@ -301,6 +301,16 @@ public class StringUtils {
         return value.substring(value.indexOf(valueToCheckFor) + valueToCheckFor.length());
     }
 
+    public static String substringBeforeLast(String value, String valueToCheckFor) {
+        if (value == null) {
+            return null;
+        }
+        if (!value.contains(valueToCheckFor)) {
+            return value;
+        }
+        return value.substring(0, value.lastIndexOf(valueToCheckFor));
+    }
+
     public static String substringAfterLast(String value, String valueToCheckFor) {
         if (value == null) {
             return null;
@@ -311,12 +321,36 @@ public class StringUtils {
         return value.substring(value.lastIndexOf(valueToCheckFor) + valueToCheckFor.length());
     }
 
+    public static String substringBetween(String value, String start, String end) {
+        if (value == null) {
+            return null;
+        }
+        int startIndex = value.indexOf(start);
+        int endIndex = value.indexOf(end);
+        if (startIndex == -1 || endIndex == -1) {
+            return "";
+        }
+        return value.substring(startIndex + 1, endIndex);
+    }
+
     public static String substringBeforeNthMatch(String value, String valueToCheckFor, int count) {
         int index = indexOrNthOccurence(value, valueToCheckFor, count);
         if (index == -1) {
             return value;
         } else {
             return value.substring(0, index);
+        }
+    }
+
+    public static String substringAfterNthMatch(String value, String valueToCheckFor, int count) {
+        if (count == 0) {
+            return value;
+        }
+        int index = indexOrNthOccurence(value, valueToCheckFor, count);
+        if (index == -1) {
+            return "";
+        } else {
+            return value.substring(index + 1);
         }
     }
 
