@@ -1,8 +1,6 @@
-package com.vmware.util.scm.diff;
+package com.vmware.util.commandline.scm;
 
 import com.vmware.util.MatcherUtils;
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.FileChangeType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -10,7 +8,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.vmware.util.scm.ScmType.git;
+import static com.vmware.util.commandline.CommandLineClientType.git;
 
 public class GitDiffParser implements DiffConverter{
 

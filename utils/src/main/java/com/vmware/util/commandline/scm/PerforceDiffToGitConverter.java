@@ -1,9 +1,7 @@
-package com.vmware.util.scm.diff;
+package com.vmware.util.commandline.scm;
 
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.FileChangeType;
-import com.vmware.util.scm.Git;
-import com.vmware.util.scm.ScmType;
+import com.vmware.util.commandline.Git;
+import com.vmware.util.commandline.CommandLineClientType;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
 
@@ -106,7 +104,7 @@ public class PerforceDiffToGitConverter implements DiffConverter {
         if (!minusDepotPath.startsWith("//")) {
             throw new RuntimeException("Expected minus depot path to start with //\n" + minusDepotPath);
         }
-        FileChange fileChange = new FileChange(ScmType.git);
+        FileChange fileChange = new FileChange(CommandLineClientType.git);
         int depotVersion = Integer.parseInt(minusMatcher.group(2));
         String plusDepotPath = MatcherUtils.singleMatchExpected(lineIter.next(), "\\+\\+\\+\\s+(.+?)\\t+");
         String[] linesInfo = determineLinesInfoForChange(lineIter);

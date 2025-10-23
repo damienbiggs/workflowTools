@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vmware.util.scm.FileChange;
+import com.vmware.util.commandline.scm.FileChange;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

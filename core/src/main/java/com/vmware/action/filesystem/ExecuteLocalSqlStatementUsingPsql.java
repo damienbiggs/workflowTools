@@ -3,7 +3,7 @@ package com.vmware.action.filesystem;
 import com.vmware.action.BaseAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;

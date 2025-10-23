@@ -1,10 +1,9 @@
 package com.vmware.action.git;
 
 import com.vmware.action.BaseAction;
-import com.vmware.action.base.BaseCommitCreateAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.logging.LogLevel;
 

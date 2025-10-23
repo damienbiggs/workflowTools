@@ -7,7 +7,7 @@ import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.jenkins.domain.Job;
 import com.vmware.jenkins.domain.JobBuild;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;

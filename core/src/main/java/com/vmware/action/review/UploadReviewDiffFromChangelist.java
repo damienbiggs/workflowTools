@@ -3,7 +3,7 @@ package com.vmware.action.review;
 import com.vmware.action.base.BaseLinkedPerforceCommitAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.logging.LogLevel;
 
 import java.io.File;

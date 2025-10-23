@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.vmware.config.CalculatedProperty;
 import com.vmware.config.ConfigurableProperty;
 import com.vmware.util.StringUtils;
-import com.vmware.util.scm.Git;
+import com.vmware.util.commandline.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

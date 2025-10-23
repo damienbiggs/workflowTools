@@ -13,13 +13,13 @@ import com.vmware.config.WorkflowConfig;
 import com.vmware.jenkins.domain.Job;
 import com.vmware.jenkins.domain.JobBuild;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.input.InputUtils;
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.NoPerforceClientForDirectoryException;
-import com.vmware.util.scm.Perforce;
+import com.vmware.util.commandline.scm.FileChange;
+import com.vmware.util.commandline.scm.NoPerforceClientForDirectoryException;
+import com.vmware.util.commandline.Perforce;
 
 public abstract class BaseCommitAction extends BaseAction {
 

@@ -4,7 +4,7 @@ import com.vmware.action.base.BaseSshAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.config.ssh.SiteConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.logging.LogLevel;
 
 @ActionDescription("Uses ssh-copy-id to copy ssh key to the remote site for passwordless login.")

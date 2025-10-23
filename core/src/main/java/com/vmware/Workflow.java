@@ -58,7 +58,7 @@ import com.vmware.util.input.InputUtils;
 import com.vmware.util.logging.DynamicLogger;
 import com.vmware.util.logging.LogLevel;
 import com.vmware.util.logging.Padder;
-import com.vmware.util.scm.Git;
+import com.vmware.util.commandline.Git;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

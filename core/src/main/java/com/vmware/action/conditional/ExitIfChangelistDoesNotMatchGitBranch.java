@@ -4,19 +4,19 @@ import com.vmware.action.base.BaseLinkedPerforceCommitUsingGitAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.util.DiffUtils;
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.FileChangeType;
-import com.vmware.util.scm.GitChangelistRef;
-import com.vmware.util.scm.diff.PendingChangelistToGitDiffCreator;
+import com.vmware.util.commandline.scm.FileChange;
+import com.vmware.util.commandline.scm.FileChangeType;
+import com.vmware.util.commandline.scm.GitChangelistRef;
+import com.vmware.util.commandline.scm.PendingChangelistToGitDiffCreator;
 import com.vmware.util.StringUtils;
 import com.vmware.util.logging.LogLevel;
 
 import java.util.List;
 
-import static com.vmware.util.scm.FileChange.containsChangesOfType;
-import static com.vmware.util.scm.FileChangeType.added;
-import static com.vmware.util.scm.FileChangeType.addedAndModified;
-import static com.vmware.util.scm.FileChangeType.deleted;
+import static com.vmware.util.commandline.scm.FileChange.containsChangesOfType;
+import static com.vmware.util.commandline.scm.FileChangeType.added;
+import static com.vmware.util.commandline.scm.FileChangeType.addedAndModified;
+import static com.vmware.util.commandline.scm.FileChangeType.deleted;
 import static com.vmware.util.StringUtils.stripLinesStartingWith;
 
 @ActionDescription("Creates a diff for the changelist and compares it to a diff of the current git branch.")

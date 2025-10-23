@@ -1,10 +1,10 @@
 package com.vmware.config;
 
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.logging.LogLevel;
-import com.vmware.util.scm.Git;
-import com.vmware.util.scm.Perforce;
+import com.vmware.util.commandline.Git;
+import com.vmware.util.commandline.Perforce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

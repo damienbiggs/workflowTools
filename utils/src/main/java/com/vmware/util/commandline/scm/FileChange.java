@@ -1,6 +1,7 @@
-package com.vmware.util.scm;
+package com.vmware.util.commandline.scm;
 
 import com.vmware.util.StringUtils;
+import com.vmware.util.commandline.CommandLineClientType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,11 +11,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static com.vmware.util.scm.FileChangeType.added;
-import static com.vmware.util.scm.FileChangeType.copied;
-import static com.vmware.util.scm.FileChangeType.addedAndModified;
-import static com.vmware.util.scm.FileChangeType.renamed;
-import static com.vmware.util.scm.FileChangeType.renamedAndModified;
+import static com.vmware.util.commandline.scm.FileChangeType.added;
+import static com.vmware.util.commandline.scm.FileChangeType.copied;
+import static com.vmware.util.commandline.scm.FileChangeType.addedAndModified;
+import static com.vmware.util.commandline.scm.FileChangeType.renamed;
+import static com.vmware.util.commandline.scm.FileChangeType.renamedAndModified;
 import static java.lang.String.format;
 
 public class FileChange {
@@ -24,7 +25,7 @@ public class FileChange {
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private String perforceChangelistId;
-    private final ScmType scmType;
+    private final CommandLineClientType commandLineClientType;
     private FileChangeType changeType;
 
     private String depotFile;
@@ -35,16 +36,16 @@ public class FileChange {
     private int fileVersion;
     private boolean unresolved;
 
-    public FileChange(ScmType scmType) {
-        this.scmType = scmType;
+    public FileChange(CommandLineClientType commandLineClientType) {
+        this.commandLineClientType = commandLineClientType;
     }
 
-    public FileChange(ScmType scmType, FileChangeType changeType, String... filesAffected) {
-        this(scmType, null, changeType, filesAffected);
+    public FileChange(CommandLineClientType commandLineClientType, FileChangeType changeType, String... filesAffected) {
+        this(commandLineClientType, null, changeType, filesAffected);
     }
 
-    public FileChange(ScmType scmType, String fileMode, FileChangeType changeType, String... filesAffected) {
-        this.scmType = scmType;
+    public FileChange(CommandLineClientType commandLineClientType, String fileMode, FileChangeType changeType, String... filesAffected) {
+        this.commandLineClientType = commandLineClientType;
         this.fileMode = fileMode;
         this.changeType = changeType;
         this.filesAffected.addAll(Arrays.asList(filesAffected));
@@ -264,7 +265,7 @@ public class FileChange {
         FileChangeType changeTypeToUseForComparision = that.changeType;
         List<String> filesFromChangeToCheck = filesAffected;
         List<String> filesFromOtherChangeToCheck = that.filesAffected;
-        if (scmType == ScmType.perforce && that.scmType == ScmType.git) {
+        if (commandLineClientType == CommandLineClientType.perforce && that.commandLineClientType == CommandLineClientType.git) {
             if (that.changeType == renamedAndModified) {
                 changeTypeToUseForComparision = renamed;
             } else if (that.changeType == addedAndModified) {
@@ -273,7 +274,7 @@ public class FileChange {
                 changeTypeToUseForComparision = added;
                 filesFromOtherChangeToCheck = Collections.singletonList(that.getLastFileAffected());
             }
-        } else if (scmType == ScmType.git && that.scmType == ScmType.perforce) {
+        } else if (commandLineClientType == CommandLineClientType.git && that.commandLineClientType == CommandLineClientType.perforce) {
             if (changeType == renamedAndModified && that.changeType == renamed) {
                 changeTypeToUseForComparision = renamedAndModified;
             } else if (changeType == addedAndModified && that.changeType == added) {

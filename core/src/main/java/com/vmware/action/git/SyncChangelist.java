@@ -4,9 +4,9 @@ import com.vmware.action.base.BaseLinkedPerforceCommitUsingGitAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.util.StopwatchUtils;
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.FileChangeType;
-import com.vmware.util.scm.GitChangelistRef;
+import com.vmware.util.commandline.scm.FileChange;
+import com.vmware.util.commandline.scm.FileChangeType;
+import com.vmware.util.commandline.scm.GitChangelistRef;
 
 import java.io.File;
 import java.util.ArrayList;

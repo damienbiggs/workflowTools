@@ -15,7 +15,7 @@ import java.security.cert.CertificateException;
 import com.vmware.action.BaseAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.FileUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;

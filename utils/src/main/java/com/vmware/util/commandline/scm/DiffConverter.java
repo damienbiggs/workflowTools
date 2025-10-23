@@ -1,6 +1,4 @@
-package com.vmware.util.scm.diff;
-
-import com.vmware.util.scm.FileChange;
+package com.vmware.util.commandline.scm;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 import com.vmware.http.HttpConnection;
 import com.vmware.http.request.body.RequestBodyHandling;
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.Perforce;
+import com.vmware.util.commandline.scm.FileChange;
+import com.vmware.util.commandline.Perforce;
 import org.junit.Test;
 
 import java.io.File;

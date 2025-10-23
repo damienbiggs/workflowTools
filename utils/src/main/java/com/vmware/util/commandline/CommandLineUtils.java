@@ -1,5 +1,9 @@
-package com.vmware.util;
+package com.vmware.util.commandline;
 
+import com.vmware.util.IOUtils;
+import com.vmware.util.StopwatchUtils;
+import com.vmware.util.StringUtils;
+import com.vmware.util.ThreadUtils;
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.logging.DynamicLogger;
 import com.vmware.util.logging.LogLevel;

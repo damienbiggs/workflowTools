@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.http.json.ConfiguredGsonBuilder;
 import com.vmware.util.logging.WorkflowConsoleHandler;
-import com.vmware.util.scm.Git;
+import com.vmware.util.commandline.Git;
 import com.vmware.util.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

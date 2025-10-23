@@ -1,4 +1,4 @@
-package com.vmware.util.scm;
+package com.vmware.util.commandline;
 
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.exception.RuntimeIOException;
@@ -11,22 +11,22 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.vmware.util.CommandLineUtils.executeCommand;
+import static com.vmware.util.commandline.CommandLineUtils.executeCommand;
 import static com.vmware.util.StringUtils.addArgumentsToValue;
 
 /**
- * Common functionality for both git and perforce wrappers can be put in this superclass.
+ * Common functionality for git, perforce and kubectl wrappers can be put in this superclass.
  */
-public abstract class BaseScmWrapper {
+public abstract class BaseCommandLineClient {
 
     final Logger log = LoggerFactory.getLogger(this.getClass());
 
     File workingDirectory;
 
-    ScmType scmType;
+    CommandLineClientType clientType;
 
-    BaseScmWrapper(ScmType scmType) {
-        this.scmType = scmType;
+    BaseCommandLineClient(CommandLineClientType clientType) {
+        this.clientType = clientType;
     }
 
     void setWorkingDirectory(File workingDirectory) {
@@ -58,28 +58,32 @@ public abstract class BaseScmWrapper {
         return workingDirectory + File.separator + pathWithinScm;
     }
 
-    String executeScmCommand(String command, String... arguments) {
-        return executeScmCommand(command, LogLevel.DEBUG, arguments);
+    String execute(String command, String... arguments) {
+        return execute(command, LogLevel.DEBUG, arguments);
     }
 
-    String executeShortScmCommand(String command, String... arguments) {
-        return executeScmCommand(command, null, LogLevel.DEBUG, true, arguments);
+    String executeShort(String command, String... arguments) {
+        return execute(null, command, null, LogLevel.DEBUG, true, arguments);
     }
 
-    String executeScmCommand(String command, LogLevel logLevel, String... commandArguments) {
-        return executeScmCommand(command, null, logLevel, commandArguments);
+    String execute(String command, LogLevel logLevel, String... commandArguments) {
+        return execute(command, null, logLevel, commandArguments);
     }
 
-    String executeScmCommand(String command, String inputText, LogLevel level, String... commandArguments) {
-        return executeScmCommand(null, command, inputText, level, false, commandArguments);
+    String execute(Map<String, String> envvars, String command, LogLevel logLevel, String... commandArguments) {
+        return execute(envvars, command, null, logLevel, commandArguments);
     }
 
-    String executeScmCommand(String command, String inputText, LogLevel level, boolean logResultOnly, String... commandArguments) {
-        return executeScmCommand(null, command, inputText, level, logResultOnly, commandArguments);
+    String execute(String command, String inputText, LogLevel level, String... commandArguments) {
+        return execute(null, command, inputText, level, false, commandArguments);
     }
 
-    String executeScmCommand(Map<String, String> environmentVariables, String command, String inputText, LogLevel level, boolean logResultOnly, String... commandArguments) {
-        String expandedCommand = scmExecutablePath() + " " + addArgumentsToValue(command, (Object[]) commandArguments);
+    String execute(Map<String, String> envvars, String command, String inputText, LogLevel level, String... commandArguments) {
+        return execute(envvars, command, inputText, level, false, commandArguments);
+    }
+
+    String execute(Map<String, String> environmentVariables, String command, String inputText, LogLevel level, boolean logResultOnly, String... commandArguments) {
+        String expandedCommand = executablePath() + " " + addArgumentsToValue(command, (Object[]) commandArguments);
         String output = executeCommand(workingDirectory, environmentVariables, expandedCommand, inputText, logResultOnly, level);
         String commandCheckOutput = checkIfCommandFailed(output);
         if (commandCheckOutput != null) {
@@ -122,6 +126,6 @@ public abstract class BaseScmWrapper {
         return output;
     }
 
-    protected abstract String scmExecutablePath();
+    abstract String executablePath();
 
 }

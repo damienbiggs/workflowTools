@@ -1,9 +1,11 @@
-package com.vmware.util.scm;
+package com.vmware.util.commandline;
 
-import com.vmware.util.CommandLineUtils;
 import com.vmware.util.FileUtils;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
+import com.vmware.util.commandline.scm.FileChange;
+import com.vmware.util.commandline.scm.FileChangeType;
+import com.vmware.util.commandline.scm.GitChangelistRef;
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.exception.RuntimeIOException;
 import com.vmware.util.logging.LogLevel;
@@ -26,13 +28,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.vmware.util.CommandLineUtils.isCommandAvailable;
+import static com.vmware.util.commandline.CommandLineUtils.isCommandAvailable;
 
 /**
  * Wrapper class around the git command line command.
  * Exposes git functionality needed for workflows.
  */
-public class Git extends BaseScmWrapper {
+public class Git extends BaseCommandLineClient {
     public static final String SHA = "Sha";
     public static final String COMMIT_DATE = "Commit Date";
     public static final String SUMMARY = "Summary";
@@ -56,12 +58,12 @@ public class Git extends BaseScmWrapper {
     }
 
     public Git() {
-        super(ScmType.git);
+        super(CommandLineClientType.git);
         super.setWorkingDirectory(System.getProperty("user.dir"));
     }
 
     public Git(File rootDirectory) {
-        super(ScmType.git);
+        super(CommandLineClientType.git);
         super.setWorkingDirectory(rootDirectory);
         this.rootDirectory = rootDirectory;
     }
@@ -81,31 +83,31 @@ public class Git extends BaseScmWrapper {
     }
 
     public String applyPartialPatchFile(File patchFile) {
-        return executeScmCommand("apply --ignore-whitespace --reject " + patchFile.getPath(), LogLevel.DEBUG);
+        return execute("apply --ignore-whitespace --reject " + patchFile.getPath(), LogLevel.DEBUG);
     }
 
     public String applyPatchFile(File patchFile, boolean check) {
         String checkString = check ? " --check" : "";
-        return executeScmCommand("apply --ignore-whitespace {} " + patchFile.getPath(), LogLevel.DEBUG, checkString);
+        return execute("apply --ignore-whitespace {} " + patchFile.getPath(), LogLevel.DEBUG, checkString);
     }
 
     public String applyPatch(String patchData, boolean check) {
         String checkString = check ? " --check" : "";
-        return executeScmCommand("apply --ignore-whitespace -3{}", patchData, LogLevel.DEBUG, checkString);
+        return execute("apply --ignore-whitespace -3{}", patchData, LogLevel.DEBUG, checkString);
     }
 
     public String diffTree(String fromRef, String ref, boolean binaryPatch, LogLevel level) {
         checkRefsAreValid(fromRef, ref);
         String binaryFlag = binaryPatch ? " --binary" : "";
-        return executeScmCommand("diff-tree -M{} --full-index -U3 -p {} {}",level, binaryFlag, fromRef, ref) + "\n";
+        return execute("diff-tree -M{} --full-index -U3 -p {} {}",level, binaryFlag, fromRef, ref) + "\n";
     }
 
     public String hashObject(File file) {
-        return executeScmCommand("hash-object {}", file.getPath());
+        return execute("hash-object {}", file.getPath());
     }
 
     public String show(String ref) {
-        return executeScmCommand("show {}", LogLevel.TRACE, ref);
+        return execute("show {}", LogLevel.TRACE, ref);
     }
 
     public void catFile(String fromRef, String filePath, String toFilePath) {
@@ -126,7 +128,7 @@ public class Git extends BaseScmWrapper {
     public String applyDiffToPerforce(String rootDirectory, String diffData, boolean check) {
         exitIfNotInRepoRootFolder("apply must be run from the root folder " + getRootDirectory().getPath());
         String checkString = check ? " --check" : "";
-        String output = executeScmCommand("apply --ignore-whitespace --directory={}{}", diffData, LogLevel.DEBUG, rootDirectory, checkString);
+        String output = execute("apply --ignore-whitespace --directory={}{}", diffData, LogLevel.DEBUG, rootDirectory, checkString);
         if (StringUtils.isEmpty(output)) {
             return output;
         }
@@ -176,12 +178,12 @@ public class Git extends BaseScmWrapper {
     }
 
     public String commitText(int skipCount) {
-        return executeScmCommand("log -1 --skip={} --pretty=\"commit %H%nAuthor: %an <%ae>%nDate: %ad%n%B\" --shortstat --date=local",
+        return execute("log -1 --skip={} --pretty=\"commit %H%nAuthor: %an <%ae>%nDate: %ad%n%B\" --shortstat --date=local",
                 String.valueOf(skipCount)).trim();
     }
 
     public List<String> commitTexts(int count) {
-        String commitsOutput = executeScmCommand("log -{} --pretty=\";break;commit %H%nAuthor: %an <%ae>%nDate: %ad%n%B\" --shortstat --date=local",
+        String commitsOutput = execute("log -{} --pretty=\";break;commit %H%nAuthor: %an <%ae>%nDate: %ad%n%B\" --shortstat --date=local",
                 String.valueOf(count));
         return Arrays.stream(commitsOutput.split(";break;")).filter(StringUtils::isNotBlank).collect(Collectors.toList());
     }
@@ -203,25 +205,25 @@ public class Git extends BaseScmWrapper {
 
     public List<String> commitsSince(Date date) {
         String formattedDate = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZZZ").format(date);
-        String commitsOutput = executeScmCommand("log --pretty=\";break;commit %H%nAuthor: %an <%ae>%nDate: %ad%n%B\" --shortstat --date=local --since={}",
+        String commitsOutput = execute("log --pretty=\";break;commit %H%nAuthor: %an <%ae>%nDate: %ad%n%B\" --shortstat --date=local --since={}",
                 formattedDate);
         return Arrays.stream(commitsOutput.split(";break;")).filter(StringUtils::isNotBlank).collect(Collectors.toList());
     }
 
     public String commitTextBody(int skipCount) {
-        return executeScmCommand("log -1 --skip={} --pretty=%B", String.valueOf(skipCount)).trim();
+        return execute("log -1 --skip={} --pretty=%B", String.valueOf(skipCount)).trim();
     }
 
     public String currentBranch() {
         if (currentBranch != null) {
             return currentBranch;
         }
-        currentBranch = executeShortScmCommand("rev-parse --abbrev-ref HEAD");
+        currentBranch = executeShort("rev-parse --abbrev-ref HEAD");
         return currentBranch;
     }
 
     public Map<String, String> allBranches() {
-        String branchesText = executeScmCommand("branch -vv");
+        String branchesText = execute("branch -vv");
         return Arrays.stream(branchesText.split(System.lineSeparator()))
                 .map(StringUtils::trim).collect(Collectors.toMap(branch -> {
             int spaceIndex = branch.indexOf(" ");
@@ -246,11 +248,11 @@ public class Git extends BaseScmWrapper {
 
     public String addConfigValue(String propertyName, String propertyValue) {
         configValues.put(propertyName, propertyValue);
-        return executeScmCommand("config {} {}", propertyName, propertyValue);
+        return execute("config {} {}", propertyName, propertyValue);
     }
 
     public int totalCommitCount() {
-        String commitCount = executeScmCommand("rev-list HEAD --count");
+        String commitCount = execute("rev-list HEAD --count");
         return Integer.parseInt(commitCount);
     }
 
@@ -263,7 +265,7 @@ public class Git extends BaseScmWrapper {
             return new HashMap<>();
         }
 
-        String configText = executeScmCommand("config -l");
+        String configText = execute("config -l");
         String[] valuesAsText = configText.split("[\r\n]+");
         Map<String, String> values = new HashMap<String, String>();
         for (String valueAsText : valuesAsText) {
@@ -283,7 +285,7 @@ public class Git extends BaseScmWrapper {
     }
 
     public void addChangesToDefaultChangelist(String origin) {
-        String output = executeScmCommand("p4 submit -M --prepare-p4-only --origin={}", origin);
+        String output = execute("p4 submit -M --prepare-p4-only --origin={}", origin);
         if (!output.contains("P4 workspace prepared for submission")) {
             log.error("Failed to apply commit to perforce, expected text \"P4 workspace prepared for submission\" in output\n{}", output);
             System.exit(1);
@@ -315,7 +317,7 @@ public class Git extends BaseScmWrapper {
         String renamesFlag = supportsRenames ? "-M " : "--no-renames ";
         String diffCommand = "diff %s--no-color --full-index --no-ext-diff --ignore-submodules %s..%s";
         diffCommand = String.format(diffCommand, renamesFlag, parentRef, commitRef);
-        String diffOutput = executeScmCommand(diffCommand, LogLevel.TRACE);
+        String diffOutput = execute(diffCommand, LogLevel.TRACE);
         return !diffOutput.isEmpty() ? diffOutput : null;
     }
 
@@ -323,11 +325,11 @@ public class Git extends BaseScmWrapper {
         checkRefsAreValid(commitRef);
         String renamesFlag = supportsRenames ? "-M " : "--no-renames ";
         String diffCommand = "diff " + renamesFlag + "--no-color --full-index --no-ext-diff --ignore-submodules " + commitRef;
-        return executeScmCommand(diffCommand);
+        return execute(diffCommand);
     }
 
     public void submit(String origin) {
-        String output = executeScmCommand("p4 submit -M --conflict=quit --origin=" + origin, LogLevel.INFO);
+        String output = execute("p4 submit -M --conflict=quit --origin=" + origin, LogLevel.INFO);
         if (!output.contains("All commits applied!")) {
             log.error("git p4 submit failed!");
             System.exit(1);
@@ -337,12 +339,12 @@ public class Git extends BaseScmWrapper {
 
     public void deleteBranch(String branch) {
         String deleteCommand = String.format("branch -D %s", branch);
-        executeScmCommand(deleteCommand, LogLevel.INFO);
+        execute(deleteCommand, LogLevel.INFO);
     }
 
     public void deleteRemoteBranch(String remote, String remoteBranch) {
         String pushCommand = String.format("push %s :%s --porcelain", remote, remoteBranch);
-        executeScmCommand(pushCommand, LogLevel.INFO);
+        execute(pushCommand, LogLevel.INFO);
     }
 
     public void pushToRemoteBranch(String remote, String remoteBranch, boolean forceUpdate) {
@@ -352,7 +354,7 @@ public class Git extends BaseScmWrapper {
         String forceUpdateString = forceUpdate ? " -f" : "";
         String pushCommand = String.format("push %s head:%s%s --porcelain", remote, remoteBranch, forceUpdateString);
 
-        String pushOutput = executeScmCommand(pushCommand, LogLevel.INFO);
+        String pushOutput = execute(pushCommand, LogLevel.INFO);
 
         if (pushOutput.contains("[up to date]")) {
             log.info("Remote branch is already up to date");
@@ -378,16 +380,16 @@ public class Git extends BaseScmWrapper {
     }
 
     public String merge(String commitRef) {
-        return executeScmCommand(String.format("merge %s -m \"Merge of %s into %s\"", commitRef, commitRef, currentBranch()), null, LogLevel.INFO);
+        return execute(String.format("merge %s -m \"Merge of %s into %s\"", commitRef, commitRef, currentBranch()), null, LogLevel.INFO);
     }
 
     public String mergeBase(String upstreamBranch, String commitRef) {
         checkRefsAreValid(upstreamBranch, commitRef);
-        return executeShortScmCommand("merge-base " + upstreamBranch + " " + commitRef);
+        return executeShort("merge-base " + upstreamBranch + " " + commitRef);
     }
 
     public String revParseWithoutException(String commitRef) {
-        return executeShortScmCommand("rev-parse " + commitRef);
+        return executeShort("rev-parse " + commitRef);
     }
 
     public String revParse(String commitRef) {
@@ -399,15 +401,15 @@ public class Git extends BaseScmWrapper {
     }
 
     public String fetch() {
-        return executeScmCommand("fetch");
+        return execute("fetch");
     }
 
     public String rebase(String branch) {
-        return executeScmCommand("rebase " + branch);
+        return execute("rebase " + branch);
     }
 
     public String p4Rebase() {
-        return executeScmCommand("p4 rebase");
+        return execute("p4 rebase");
     }
 
     /**
@@ -433,20 +435,20 @@ public class Git extends BaseScmWrapper {
         if (tagName.equals("null")) {
             throw new RuntimeException("tag name should not equal null");
         }
-        return executeScmCommand("tag -f " + tagName, logLevel);
+        return execute("tag -f " + tagName, logLevel);
     }
 
     public List<String> listTags() {
-        String output = executeScmCommand("tag");
+        String output = execute("tag");
         return Arrays.asList(output.split("\n"));
     }
 
     public String deleteTag(String tagName) {
-        return executeScmCommand("tag -d " + tagName);
+        return execute("tag -d " + tagName);
     }
 
     public String changesetCommand(String command, LogLevel logLevel) {
-        return executeScmCommand("changeset " + command, logLevel);
+        return execute("changeset " + command, logLevel);
     }
 
     public String getTrackingBranch() {
@@ -455,7 +457,7 @@ public class Git extends BaseScmWrapper {
         }
         String branchName = currentBranch();
         try {
-            Git.trackingBranch = executeShortScmCommand("rev-parse --abbrev-ref " + branchName + "@{upstream}");
+            Git.trackingBranch = executeShort("rev-parse --abbrev-ref " + branchName + "@{upstream}");
         } catch (FatalException fe) {
             Git.trackingBranch = "";
         }
@@ -463,19 +465,19 @@ public class Git extends BaseScmWrapper {
     }
 
     public void initRepo() {
-        executeScmCommand("init");
+        execute("init");
     }
 
     public void addAllFiles() {
-        executeScmCommand("add --all");
+        execute("add --all");
     }
 
     public void addFile(String filePath) {
-        executeScmCommand("add " + filePath);
+        execute("add " + filePath);
     }
 
     public String reset(String ref) {
-        return executeScmCommand("reset --hard " + ref);
+        return execute("reset --hard " + ref);
     }
 
     public List<FileChange> getStagedChanges() {
@@ -487,7 +489,7 @@ public class Git extends BaseScmWrapper {
     }
 
     public List<FileChange> getChangesInDiff(String fromRef, String toRef) {
-        String output = executeScmCommand("diff-tree --full-index -r -M -C {} {}", fromRef, toRef);
+        String output = execute("diff-tree --full-index -r -M -C {} {}", fromRef, toRef);
         Matcher lineMatcher = Pattern.compile(":(\\d+)\\s+(\\d+)\\s+\\w+\\s\\w+\\s+(\\w+)\\s+(.+)").matcher(output);
         List<FileChange> fileChanges = new ArrayList<>();
         while (lineMatcher.find()) {
@@ -498,15 +500,15 @@ public class Git extends BaseScmWrapper {
             if (actionTypeText.startsWith("R")) {
                 int similarityPercent = Integer.parseInt(actionTypeText.substring(1));
                 FileChangeType changeType = similarityPercent == 100 ? FileChangeType.renamed : FileChangeType.renamedAndModified;
-                fileChanges.add(new FileChange(scmType, fileMode, changeType, affectedFiles.split("[\t\n]")));
+                fileChanges.add(new FileChange(clientType, fileMode, changeType, affectedFiles.split("[\t\n]")));
             } else {
                 FileChangeType changeType = FileChangeType.changeTypeFromGitValue(actionTypeText);
                 if (changeType == FileChangeType.deleted) {
-                    fileChanges.add(new FileChange(scmType, oldFileMode, changeType, affectedFiles));
+                    fileChanges.add(new FileChange(clientType, oldFileMode, changeType, affectedFiles));
                 } else if (changeType == FileChangeType.copied) {
-                    fileChanges.add(new FileChange(scmType, oldFileMode, changeType, affectedFiles.split("[\t\n]")));
+                    fileChanges.add(new FileChange(clientType, oldFileMode, changeType, affectedFiles.split("[\t\n]")));
                 } else {
-                    fileChanges.add(new FileChange(scmType, fileMode, changeType, affectedFiles));
+                    fileChanges.add(new FileChange(clientType, fileMode, changeType, affectedFiles));
                 }
             }
         }
@@ -524,7 +526,7 @@ public class Git extends BaseScmWrapper {
     }
 
     @Override
-    protected String scmExecutablePath() {
+    protected String executablePath() {
         if (getRootDirectory() != null && workingDirectory.getPath().contains(getRootDirectory().getPath())) {
             return "git";
         } else {
@@ -534,7 +536,7 @@ public class Git extends BaseScmWrapper {
 
     private void checkIfLastCommitHasSameAuthor() {
         String authorEmail = configValue("user.email");
-        String lastCommitAuthor = executeScmCommand("log -1 --format=%ae head");
+        String lastCommitAuthor = execute("log -1 --format=%ae head");
         if (!authorEmail.equals(lastCommitAuthor)) {
             throw new FatalException("Last commit has author of {}. Can only amend commits for current author {}",
                     lastCommitAuthor, authorEmail);
@@ -543,7 +545,7 @@ public class Git extends BaseScmWrapper {
 
     private List<FileChange> getChanges(boolean includeUnStagedChanges) {
         List<FileChange> changes = new ArrayList<>();
-        String gitStatusOutput = executeScmCommand("status --porcelain -uno" );
+        String gitStatusOutput = execute("status --porcelain -uno" );
 
         String pattern = String.format("^(\\s*)(%s+)\\s+(.+)", FileChangeType.allValuesAsGitPattern());
         Matcher changesMatcher = Pattern.compile(pattern, Pattern.MULTILINE).matcher(gitStatusOutput);
@@ -562,12 +564,12 @@ public class Git extends BaseScmWrapper {
                 if (arrowIndex != -1) {
                     String renamedFromFile = filePath.substring(0, arrowIndex).trim();
                     String renamedToFile = filePath.substring(arrowIndex + 3).trim();
-                    fileChange = new FileChange(scmType, FILE_MODE_UNKNOWN, fileChangeType, renamedFromFile, renamedToFile);
+                    fileChange = new FileChange(clientType, FILE_MODE_UNKNOWN, fileChangeType, renamedFromFile, renamedToFile);
                 } else if (fileChangeType == FileChangeType.copied) {
                     String[] affectedFiles = filePath.split("\t");
-                    fileChange = new FileChange(scmType, FILE_MODE_UNKNOWN, fileChangeType, affectedFiles[0], affectedFiles[1]);
+                    fileChange = new FileChange(clientType, FILE_MODE_UNKNOWN, fileChangeType, affectedFiles[0], affectedFiles[1]);
                 } else {
-                    fileChange = new FileChange(scmType, FILE_MODE_UNKNOWN, fileChangeType, filePath);
+                    fileChange = new FileChange(clientType, FILE_MODE_UNKNOWN, fileChangeType, filePath);
                 }
                 changes.add(fileChange);
             }
@@ -608,7 +610,7 @@ public class Git extends BaseScmWrapper {
     private void executeCommitCommand(String commitCommand, String msg, boolean noVerify, LogLevel logLevel) {
         String noVerifyText = noVerify ? " --no-verify" : "";
         String fileText = StringUtils.isNotBlank(msg) ? " --file=-" : "";
-        executeScmCommand(commitCommand + noVerifyText + fileText, msg, logLevel);
+        execute(commitCommand + noVerifyText + fileText, msg, logLevel);
     }
 
     private File determineRootDirectory() {

@@ -1,21 +1,21 @@
 package com.vmware.action.base;
 
 import com.vmware.config.WorkflowConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.SkipActionException;
 import com.vmware.util.logging.LogLevel;
 import com.vmware.util.logging.Padder;
-import com.vmware.util.scm.FileChange;
+import com.vmware.util.commandline.scm.FileChange;
 
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.vmware.util.StringUtils.appendWithDelimiter;
-import static com.vmware.util.scm.FileChangeType.deleted;
-import static com.vmware.util.scm.FileChangeType.deletedAfterRename;
+import static com.vmware.util.commandline.scm.FileChangeType.deleted;
+import static com.vmware.util.commandline.scm.FileChangeType.deletedAfterRename;
 
 public abstract class BaseCheckstyleAction extends BaseCommitAction {
 

@@ -1,8 +1,6 @@
-package com.vmware.util.scm.diff;
+package com.vmware.util.commandline.scm;
 
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.FileChangeType;
-import com.vmware.util.scm.Perforce;
+import com.vmware.util.commandline.Perforce;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.FatalException;
@@ -21,7 +19,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.vmware.util.scm.ScmType.git;
+import static com.vmware.util.commandline.CommandLineClientType.git;
 import static java.lang.String.format;
 
 /**

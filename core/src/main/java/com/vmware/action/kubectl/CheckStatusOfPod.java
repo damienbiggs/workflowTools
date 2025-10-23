@@ -3,7 +3,7 @@ package com.vmware.action.kubectl;
 import com.vmware.action.BaseAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.kubectl.Kubectl;
+import com.vmware.util.commandline.Kubectl;
 import com.vmware.util.logging.Padder;
 
 import java.util.List;

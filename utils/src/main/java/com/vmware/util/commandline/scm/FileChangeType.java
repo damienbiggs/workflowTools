@@ -1,4 +1,4 @@
-package com.vmware.util.scm;
+package com.vmware.util.commandline.scm;
 
 import java.util.Arrays;
 import java.util.List;

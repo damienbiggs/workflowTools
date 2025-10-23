@@ -31,12 +31,12 @@ import com.vmware.config.section.SslConfig;
 import com.vmware.config.section.SsoConfig;
 import com.vmware.config.section.TrelloConfig;
 import com.vmware.config.section.VcdConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.exception.CancelException;
 import com.vmware.util.exception.SkipActionException;
 import com.vmware.util.logging.LogLevel;
-import com.vmware.util.scm.Git;
+import com.vmware.util.commandline.Git;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

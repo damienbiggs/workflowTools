@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName;
 import com.vmware.BuildStatus;
 
 import java.net.URI;
-import java.util.Date;
 
 /**
  * Represents information on a buildweb build.
@@ -14,6 +13,8 @@ import java.util.Date;
  */
 public class BuildwebBuild {
 
+    @SerializedName("buildsystem")
+    public String buildSystem;
     public long id;
     public String changeset;
     public String branch;

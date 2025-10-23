@@ -3,7 +3,7 @@ package com.vmware.action.conditional;
 import com.vmware.action.base.BaseCommitUsingReviewBoardAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.DiffUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.logging.LogLevel;

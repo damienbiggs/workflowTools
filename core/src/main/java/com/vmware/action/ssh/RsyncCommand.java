@@ -6,7 +6,7 @@ import com.vmware.action.base.BaseSshAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.config.ssh.SiteConfig;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.FileUtils;
 import com.vmware.util.logging.LogLevel;
 

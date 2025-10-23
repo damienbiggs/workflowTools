@@ -1,4 +1,4 @@
-package com.vmware.util.scm;
+package com.vmware.util.commandline.scm;
 
 public class GitChangelistRef {
 

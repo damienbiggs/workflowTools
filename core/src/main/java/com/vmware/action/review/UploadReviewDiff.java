@@ -5,8 +5,8 @@ import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.reviewboard.domain.DiffToUpload;
 import com.vmware.reviewboard.domain.RepoType;
-import com.vmware.util.scm.diff.GitDiffToPerforceConverter;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.scm.GitDiffToPerforceConverter;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.logging.LogLevel;
 

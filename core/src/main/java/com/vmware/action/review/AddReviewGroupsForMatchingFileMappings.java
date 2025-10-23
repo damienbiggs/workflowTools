@@ -3,7 +3,7 @@ package com.vmware.action.review;
 import com.vmware.action.base.BaseCommitAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
-import com.vmware.util.scm.FileChange;
+import com.vmware.util.commandline.scm.FileChange;
 
 import java.util.List;
 

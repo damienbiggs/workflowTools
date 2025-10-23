@@ -1,9 +1,7 @@
-package com.vmware.util.scm.diff;
+package com.vmware.util.commandline.scm;
 
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.FileChangeType;
-import com.vmware.util.scm.Perforce;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.Perforce;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.FileUtils;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
@@ -20,10 +18,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.vmware.util.scm.FileChange.containsChangesOfType;
-import static com.vmware.util.scm.FileChangeType.added;
-import static com.vmware.util.scm.FileChangeType.addedAndModified;
-import static com.vmware.util.scm.FileChangeType.deleted;
+import static com.vmware.util.commandline.scm.FileChange.containsChangesOfType;
+import static com.vmware.util.commandline.scm.FileChangeType.added;
+import static com.vmware.util.commandline.scm.FileChangeType.addedAndModified;
+import static com.vmware.util.commandline.scm.FileChangeType.deleted;
 import static com.vmware.util.StringUtils.stripLinesStartingWith;
 import static java.lang.String.format;
 

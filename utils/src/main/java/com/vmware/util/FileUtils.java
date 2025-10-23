@@ -2,7 +2,7 @@ package com.vmware.util;
 
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.exception.RuntimeIOException;
-import com.vmware.util.scm.Git;
+import com.vmware.util.commandline.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

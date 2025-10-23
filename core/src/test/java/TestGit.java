@@ -1,6 +1,6 @@
 import com.vmware.config.section.CommitConfig;
-import com.vmware.util.scm.FileChange;
-import com.vmware.util.scm.Git;
+import com.vmware.util.commandline.scm.FileChange;
+import com.vmware.util.commandline.Git;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
 import com.vmware.util.IOUtils;
 import com.vmware.util.StringUtils;
@@ -17,9 +17,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.vmware.util.scm.FileChangeType.deleted;
-import static com.vmware.util.scm.FileChangeType.modified;
-import static com.vmware.util.scm.FileChangeType.renamed;
+import static com.vmware.util.commandline.scm.FileChangeType.deleted;
+import static com.vmware.util.commandline.scm.FileChangeType.modified;
+import static com.vmware.util.commandline.scm.FileChangeType.renamed;
 import static java.lang.String.format;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

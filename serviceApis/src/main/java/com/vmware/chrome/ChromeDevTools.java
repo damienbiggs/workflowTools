@@ -24,7 +24,7 @@ import com.vmware.chrome.domain.ChromeTab;
 import com.vmware.http.HttpConnection;
 import com.vmware.http.json.ConfiguredGsonBuilder;
 import com.vmware.http.request.body.RequestBodyHandling;
-import com.vmware.util.CommandLineUtils;
+import com.vmware.util.commandline.CommandLineUtils;
 import com.vmware.util.IOUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.ThreadUtils;
