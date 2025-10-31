@@ -2,7 +2,7 @@ package com.vmware.action.kubectl;
 
 import com.google.gson.Gson;
 import com.vmware.BuildStatus;
-import com.vmware.action.base.BaseCommitAction;
+import com.vmware.action.base.BaseCommitUsingKubectlAction;
 import com.vmware.buildweb.Buildweb;
 import com.vmware.buildweb.domain.BuildwebBuild;
 import com.vmware.config.ActionDescription;
@@ -12,26 +12,23 @@ import com.vmware.util.StringUtils;
 import com.vmware.util.UrlUtils;
 import com.vmware.util.exception.FatalException;
 import com.vmware.util.input.InputUtils;
-import com.vmware.util.commandline.Kubectl;
 import com.vmware.xmlrpc.MapObjectConverter;
 
 import java.io.StringReader;
 import java.util.Map;
 
 @ActionDescription("Upgrade a pod in a vcfa instance using kubectl and vmsp")
-public class UpdatePackageForPod extends BaseCommitAction {
+public class UpdatePackageForPod extends BaseCommitUsingKubectlAction {
     private static final String SANDBOX_BUILD_NUMBER = "$SANDBOX_BUILD";
 
     public UpdatePackageForPod(WorkflowConfig config) {
         super(config);
-        super.addExpectedCommandsToBeAvailable("vmsp", "kubectl");
-        super.addFailWorkflowIfBlankProperties("kubeConfigFile", "registryUrl", "podName");
+        super.addExpectedCommandsToBeAvailable("vmsp");
+        super.addFailWorkflowIfBlankProperties("registryUrl");
     }
 
     @Override
     public void process() {
-        Kubectl kubectl = new Kubectl(kubectlConfig.kubeConfigFile, kubectlConfig.namespace);
-
         String sandboxBuildNumber = StringUtils.isNotBlank(buildwebConfig.sandboxBuildNumber)
                 ? buildwebConfig.sandboxBuildNumber : determineSandboxBuildNumber(buildwebConfig.buildDisplayName);
         Buildweb buildweb = serviceLocator.getBuildweb();

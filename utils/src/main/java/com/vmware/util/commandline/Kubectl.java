@@ -18,7 +18,7 @@ public class Kubectl extends BaseCommandLineClient {
     private final String namespace;
 
     public Kubectl(String kubeConfigFile, String namespace) {
-        super(CommandLineClientType.kubernetes);
+        super(CommandLineClientType.k8s);
         super.setWorkingDirectory(System.getProperty("user.dir"));
         this.namespace = namespace;
         if (!new File(kubeConfigFile).exists()) {
@@ -41,6 +41,12 @@ public class Kubectl extends BaseCommandLineClient {
 
     public void apply(String updatedSpec) {
         execute(envvars, "apply -f -", updatedSpec, LogLevel.INFO);
+    }
+
+    public void tailLogFile(String podName, String logFile, int lineCount, boolean tailFollow) {
+        String tailOption = tailFollow ? " -f" : "";
+        execute(envvars, "exec {} -- tail -n {} {} {}", null, LogLevel.INFO,
+                podName, String.valueOf(lineCount), tailOption, logFile);
     }
 
     public List<String> getPodStatus(String podName) {

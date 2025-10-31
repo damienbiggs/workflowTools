@@ -7,6 +7,7 @@
   ],
   "DisplayBuildOutputForBuildwebBuilds": [
     "--include-in-progress",
+    "--buildweb-log-file-name",
     "--log-line-count",
     "--sandbox-build-number"
   ],
@@ -28,9 +29,7 @@
     "--source-url"
   ],
   "CheckStatusOfPod": [
-    "--pod-name",
-    "--namespace",
-    "--kube-config"
+    "--pod-name"
   ],
   "WaitForMergeRequestToBeUpdated": [
     "--wait-time"
@@ -102,6 +101,10 @@
   "SaveFileData": [
     "--file-data",
     "--destination-file"
+  ],
+  "BaseCommitUsingKubectlAction": [
+    "--namespace",
+    "--kube-config"
   ],
   "AuthenticateAllApis": [
     "--username",
@@ -379,12 +382,11 @@
     "--buildweb-log-file-name",
     "--buildweb-api-url",
     "--registry-url",
+    "--kube-config",
     "--pod-name",
     "--package-update-path",
     "--build-display-name",
-    "--sandbox-build-number",
-    "--namespace",
-    "--kube-config"
+    "--sandbox-build-number"
   ],
   "ParseText": [
     "--output-variable-name",
@@ -570,6 +572,12 @@
   ],
   "DisplayFileData": [
     "--file-data"
+  ],
+  "TailPodLogFile": [
+    "--tail-follow",
+    "--log-line-count",
+    "--pod-name",
+    "--log-file"
   ],
   "FindMatchingLines": [
     "--log-file",

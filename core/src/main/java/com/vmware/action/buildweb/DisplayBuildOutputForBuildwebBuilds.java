@@ -27,7 +27,7 @@ public class DisplayBuildOutputForBuildwebBuilds extends BaseCommitWithBuildwebB
     @Override
     public void process() {
         if (StringUtils.isNotBlank(buildwebConfig.sandboxBuildNumber)) {
-            Padder buildPadder = new Padder("Buildweb build {}", buildwebConfig.sandboxBuildNumber);
+            Padder buildPadder = new Padder("Buildweb build {} {}", buildwebConfig.sandboxBuildNumber, buildwebConfig.buildwebLogFileName);
             buildPadder.infoTitle();
             log.info(buildweb.getBuildOutput(buildwebConfig.sandboxBuildNumber, buildwebConfig.logLineCount));
             buildPadder.infoTitle();

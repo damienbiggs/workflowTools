@@ -17,4 +17,14 @@ public class KubectlConfig {
 
     @ConfigurableProperty(commandLine = "--package-update-path", help = "Relative path within a build for the required deliverable")
     public String packageUpdatePath;
+
+    @ConfigurableProperty(commandLine = "--log-file", help = "Log file(s) to tail or find matching lines from")
+    public String logFile;
+
+    @ConfigurableProperty(commandLine = "--log-line-count", help = "How many lines of the log to show")
+    public int logLineCount;
+
+    @ConfigurableProperty(commandLine = "--tail-follow", help = "Using tail -f")
+    public boolean continuousTailing;
+
 }

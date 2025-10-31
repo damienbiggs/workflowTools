@@ -62,8 +62,8 @@ public class Buildweb extends AbstractRestBuildService {
         List<JobBuild> jobsToCheck = draft.jobBuildsMatchingUrl(urlToCheckFor);
         jobsToCheck.stream().filter(jobBuild -> jobBuild.matches(results))
                 .forEach(jobBuild -> {
-                    String elapsedTime = jobBuild.duration != null ? " duration " + StringUtils.formatDuration(jobBuild.duration) : "";
-                    Padder buildPadder = new Padder("Buildweb build {} result {}{}", jobBuild.buildNumber(), jobBuild.status, elapsedTime);
+                    String elapsedTime = jobBuild.duration != null ? " " + StringUtils.formatDuration(jobBuild.duration) : "";
+                    Padder buildPadder = new Padder("Build {} {} {}{}", jobBuild.buildNumber(), buildwebLogFileName, jobBuild.status, elapsedTime);
                     buildPadder.infoTitle();
                     if (jobBuild.logsUrl != null) {
                         log.info(IOUtils.tail(jobBuild.logsUrl, linesToShow));
