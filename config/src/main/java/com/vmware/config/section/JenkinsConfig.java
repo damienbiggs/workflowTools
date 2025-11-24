@@ -17,9 +17,9 @@ public class JenkinsConfig {
 
     public static final String CONFIG_PREFIX = "--J";
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @ConfigurableProperty(help = "Url for jenkins server")
+    @ConfigurableProperty(commandLine = "--jenkins-url", help = "Url for jenkins server")
     public String jenkinsUrl;
 
     @ConfigurableProperty(help = "Whether the jenkins server uses CSRF header")

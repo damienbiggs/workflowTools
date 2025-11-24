@@ -50,6 +50,8 @@ public class InputSerializer {
             return "[" + Arrays.stream(values).map(this::getValueAsText).collect(Collectors.joining(", ")) + "]";
         } else if (value.getClass().isEnum()) {
             return value.toString();
+        } else if (value  instanceof String && ((String) value).contains("\n")) {
+            return "\"\"\"" + value + "\"\"\"";
         } else {
             return "\"" + value + "\"";
         }

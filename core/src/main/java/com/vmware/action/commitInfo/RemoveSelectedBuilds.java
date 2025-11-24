@@ -7,6 +7,7 @@ import com.vmware.action.base.BaseCommitAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.jenkins.domain.JobBuild;
+import com.vmware.util.input.InputListSelection;
 import com.vmware.util.input.InputUtils;
 
 @ActionDescription("Removes selected builds from testing done section of commit.")
@@ -18,15 +19,18 @@ public class RemoveSelectedBuilds extends BaseCommitAction {
 
     @Override
     public void process() {
-        List<JobBuild> matchingBuilds = new ArrayList<>(draft.jobBuildsMatchingUrl(buildwebConfig.buildwebUrl));
-        matchingBuilds.addAll(draft.jobBuildsMatchingUrl(jenkinsConfig.jenkinsUrl));
+        List<JobBuild> matchingBuilds = getAllJobBuilds();
         log.info("");
-        List<String> choices = new ArrayList<>();
-        matchingBuilds.forEach(jobBuild -> choices.add(jobBuild.name));
-        choices.add("None");
-        List<Integer> selections = InputUtils.readSelections(choices, "Select builds to remove from commit", false);
+        matchingBuilds.add(new JobBuild() {
+            @Override
+            public String getLabel() {
+                return "none";
+            }
+        });
+        List<Integer> selections = InputUtils.readSelections(matchingBuilds.toArray(new InputListSelection[0]),
+                "Select builds to remove from commit", false);
         // check selection doesn't contain none value
-        if (!selections.contains(choices.size() - 1)) {
+        if (!selections.contains(matchingBuilds.size() - 1)) {
             selections.forEach(selection -> draft.jobBuilds.removeIf(build -> build.url.equals(matchingBuilds.get(selection).url)));
         }
     }

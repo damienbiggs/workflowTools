@@ -58,7 +58,21 @@ public class SsoClient {
             log.info("Clicking element {} for starting SSO", ssoInitButtonId);
             devTools.clickByLocator(ssoInitButtonId);
             ssoNavigateConsumer.accept(devTools);
-            response = waitForSiteUrlOrSignInElements(devTools, loggedInCheck, ssoConfig.ssoSignInButtonId, ssoConfig.emailAddressSubmitButtonId, ssoConfig.ssoExternalAuthButtonId);
+            response = waitForSiteUrlOrSignInElements(devTools, loggedInCheck, ssoConfig.ssoSignInButtonId, ssoConfig.emailAddressSubmitButtonId, ssoConfig.ssoUsernameInputId, ssoConfig.ssoExternalAuthButtonId);
+
+            if (response.matchesRequestSource(ssoConfig.ssoUsernameInputId)) {
+                String usernameSubmitButtonLocator = devTools.locatorForElement(ssoConfig.usernameSubmitButtonId);
+                if (usernameSubmitButtonLocator != null) {
+                    if (StringUtils.isEmpty(username)) {
+                        throw new FatalException("No username specified for sso, specify --username property or set a value for git user.email");
+                    }
+                    log.info("Using username {} for SSO", username);
+                    devTools.setValueByLocator(response.getRequestExpression(), username);
+                    devTools.clickByLocator(usernameSubmitButtonLocator);
+                    devTools.waitForDomContentEvent();
+                    response = waitForSiteUrlOrSignInElements(devTools, loggedInCheck, ssoConfig.ssoSignInButtonId, ssoConfig.ssoExternalAuthButtonId);
+                }
+            }
 
             if (response.matchesRequestSource(ssoConfig.ssoExternalAuthButtonId)) {
                 log.info("Clicking element {} to use external auth for SSO", ssoConfig.ssoExternalAuthButtonId);
@@ -72,11 +86,12 @@ public class SsoClient {
                     throw new FatalException("No email specified for sso, specify --sso-email property or set a value for git user.email");
                 }
                 log.info("Using email {} for SSO", email);
-                devTools.setValueByLocator(response.getRequestExpression(), email);
+                devTools.setValueByLocator(ssoConfig.emailAddressInputId, email);
                 devTools.clickByLocator(ssoConfig.emailAddressSubmitButtonId);
                 devTools.waitForDomContentEvent();
                 response = waitForSiteUrlOrSignInElements(devTools, loggedInCheck, ssoConfig.ssoSignInButtonId);
             }
+
         }
 
         if (loggedInCheck.getValue().test(response)) {

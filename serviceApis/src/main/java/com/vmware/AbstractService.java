@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * Base Class for Rest and Non Rest services.
@@ -92,7 +93,7 @@ public abstract class AbstractService {
      * @see ApiAuthentication for file system locations
      */
     protected String readExistingApiToken(ApiAuthentication credentialsType) {
-        File apiTokenFile = determineApiTokenFile(credentialsType);
+        File apiTokenFile = determineApiTokenFile(credentialsType, false);
         if (!apiTokenFile.exists()) {
             return null;
         }
@@ -105,7 +106,7 @@ public abstract class AbstractService {
         if (StringUtils.isEmpty(apiToken) || apiToken.equals(existingToken)) {
             return;
         }
-        File apiTokenFile = determineApiTokenFile(credentialsType);
+        File apiTokenFile = determineApiTokenFile(credentialsType, true);
 
         log.info("Saving {} api token to {}", credentialsType.name(), apiTokenFile.getPath());
         IOUtils.write(apiTokenFile, apiToken);
@@ -123,7 +124,7 @@ public abstract class AbstractService {
     protected abstract void loginManually();
 
     protected void displayInputMessageForFirstLoginFailure() {
-        String filePath = determineApiTokenFile(credentialsType).getPath();
+        String filePath = determineApiTokenFile(credentialsType, true).getPath();
         if (credentialsType.getCookieName() != null) {
             log.info("Valid {} cookie ({}) not found in file {}", credentialsType.name(),
                     credentialsType.getCookieName(), filePath);
@@ -132,8 +133,16 @@ public abstract class AbstractService {
         }
     }
 
-    protected File determineApiTokenFile(ApiAuthentication apiAuthentication) {
+    protected File determineApiTokenFile(ApiAuthentication apiAuthentication, boolean savingToken) {
         String homeFolder = System.getProperty("user.home");
+        File apiHostTokenFile = new File(homeFolder + File.separator +
+                "." + URI.create(baseUrl).getHost() + "-" + apiAuthentication.getFileName().substring(1));
+        if (apiHostTokenFile.exists() || savingToken) {
+            return apiHostTokenFile;
+        } else {
+            log.debug("Host api token file {} does not exist", apiHostTokenFile.getPath());
+        }
+
         File apiTokenFile = new File(homeFolder + "/" + apiAuthentication.getFileName());
         if (!apiTokenFile.exists()) {
             log.debug("Default api token file {} does not exist", apiTokenFile.getPath());

@@ -5,6 +5,7 @@
  */
 package com.vmware.action.base;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,6 +78,12 @@ public abstract class BaseCommitAction extends BaseAction {
             log.warn("Not in git repo and config value perforceClientName is not set, can't read last change");
             return Collections.emptyList();
         }
+    }
+
+    protected List<JobBuild> getAllJobBuilds() {
+        List<JobBuild> matchingBuilds = new ArrayList<>(draft.jobBuildsMatchingUrl(buildwebConfig.buildwebUrl));
+        matchingBuilds.addAll(draft.jobBuildsMatchingUrl(jenkinsConfig.jenkinsUrl));
+        return matchingBuilds;
     }
 
     protected boolean commitTextHasChanges(boolean includeJobResultsInCommit) {

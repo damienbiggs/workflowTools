@@ -8,6 +8,7 @@ import com.vmware.action.BaseAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.util.CollectionUtils;
+import com.vmware.util.input.InputListSelection;
 import com.vmware.util.input.InputUtils;
 import com.vmware.vcd.Vcd;
 import com.vmware.vcd.domain.QueryResultVMType;
@@ -28,10 +29,11 @@ public class DeleteVMs extends BaseAction {
             log.info("No VMs found");
             return;
         }
-        List<String> choices = vmRecords.record.stream().map(QueryResultVMType::getLabel).collect(Collectors.toList());
-        List<Integer> vmIndexes = InputUtils.readSelections(choices, "Select VMs to delete", false);
+        List<Integer> vmIndexes = InputUtils.readSelections(vmRecords.record.toArray(new InputListSelection[0]),
+                "Select VMs to delete", false);
 
-        String vmsToDelete = vmIndexes.stream().map(choices::get).collect(Collectors.joining(","));
+        String vmsToDelete = vmIndexes.stream().map(index -> vmRecords.record.get(index).getLabel())
+                .collect(Collectors.joining(","));
         log.info("VMs {} will be deleted", vmsToDelete);
         String confirmation = InputUtils.readValueUntilNotBlank("Delete (Y/N)");
         if ("Y".equalsIgnoreCase(confirmation)) {

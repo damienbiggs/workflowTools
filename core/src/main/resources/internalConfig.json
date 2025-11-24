@@ -40,6 +40,7 @@
   "vcdSysAdminUser": "administrator",
   "vcdVmQuota": 40,
   "vcdSsoButtonId" : "samlSsoLoginButton",
+  "usernameSubmitButtonId": "document.getElementsByClassName('primary-button')[0]",
   "testbedParameter": "TESTBED_DESCRIPTOR_NAME",
   "vappJsonParameter": "TESTBED_JSON",
   "daysOldForShowingJobDate": 3,

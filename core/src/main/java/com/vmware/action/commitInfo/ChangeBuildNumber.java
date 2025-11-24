@@ -7,6 +7,7 @@ import com.vmware.action.base.BaseCommitAction;
 import com.vmware.config.ActionDescription;
 import com.vmware.config.WorkflowConfig;
 import com.vmware.jenkins.domain.JobBuild;
+import com.vmware.util.input.InputListSelection;
 import com.vmware.util.input.InputUtils;
 
 @ActionDescription("Change the build number for the selected build")
@@ -18,15 +19,18 @@ public class ChangeBuildNumber extends BaseCommitAction {
 
     @Override
     public void process() {
-        List<JobBuild> matchingBuilds = new ArrayList<>(draft.jobBuildsMatchingUrl(buildwebConfig.buildwebUrl));
-        matchingBuilds.addAll(draft.jobBuildsMatchingUrl(jenkinsConfig.jenkinsUrl));
+        List<JobBuild> matchingBuilds = getAllJobBuilds();
         log.info("");
-        List<String> choices = new ArrayList<>();
-        matchingBuilds.forEach(jobBuild -> choices.add(jobBuild.name));
-        choices.add("None");
+        matchingBuilds.add(new JobBuild() {
+            @Override
+            public String getLabel() {
+                return "none";
+            }
+        });
 
-        int selection = InputUtils.readSelection(choices, "Select jenkins builds to change build number for");
-        if (selection >= matchingBuilds.size()) {
+        int selection = InputUtils.readSelection(matchingBuilds.toArray(new InputListSelection[0]),
+                "Select build to change build number for");
+        if (selection >= matchingBuilds.size()  - 1) {
             return;
         }
 

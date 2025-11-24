@@ -135,17 +135,25 @@ public class ChromeDevTools extends WebSocketClient {
     public void onMessage(ByteBuffer bytes) {
     }
 
+    public String locatorForElement(String element) {
+        ApiResponse responseById = !element.startsWith("document.") ? evaluate(locatorForId(element)) : null;
+        if (responseById != null && responseById.hasObjectId()) {
+            return responseById.getRequestExpression();
+        }
+        ApiResponse responseByLocator = evaluate(element);
+        return responseByLocator.hasObjectId() ? responseByLocator.getRequestExpression() : null;
+    }
+
     public ApiResponse evaluate(String element) {
         return sendMessage(ApiRequest.evaluate(element));
     }
 
     public ApiResponse evaluateById(String elementId, String operation) {
-        String elementScript = String.format("document.getElementById('%s')", elementId);
-        return evaluate(elementScript, operation, elementId);
+        return evaluate(locatorForId(elementId), operation, elementId);
     }
 
     public ApiResponse clickById(String elementId) {
-        return clickByLocator(String.format("document.getElementById('%s')", elementId), "#" + elementId);
+        return clickByLocator(locatorForId(elementId), "#" + elementId);
     }
 
     public ApiResponse clickByLocator(String locator) {
@@ -158,8 +166,8 @@ public class ChromeDevTools extends WebSocketClient {
     }
 
     public void setValueById(String elementId, String value) {
-        evaluate(String.format("document.getElementById('%s')", elementId), ".value = '" + value + "'","#" + elementId);
-        evaluate(String.format("document.getElementById('%s')", elementId), ".dispatchEvent(new Event('input', {bubbles: true}))","#" + elementId);
+        evaluate(locatorForId(elementId), ".value = '" + value + "'","#" + elementId);
+        evaluate(locatorForId(elementId), ".dispatchEvent(new Event('input', {bubbles: true}))","#" + elementId);
     }
 
     public void setValueByLocator(String locator, String value) {
@@ -248,6 +256,10 @@ public class ChromeDevTools extends WebSocketClient {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String locatorForId(String id) {
+        return String.format("document.getElementById('%s')", id);
     }
 
     private static Process launchChrome(String chromePath, boolean ssoHeadless, int chromeDebugPort) {

@@ -1,7 +1,5 @@
 package com.vmware.github;
 
-import java.io.File;
-import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -221,19 +219,6 @@ public class Github extends AbstractRestService {
         String privateToken = InputUtils.readValueUntilNotBlank("Enter Personal Access Token");
         saveApiToken(privateToken, ApiAuthentication.github_token);
         connection.addStatefulParam(RequestHeader.aBearerAuthHeader(privateToken));
-    }
-
-    @Override
-    protected File determineApiTokenFile(ApiAuthentication apiAuthentication) {
-        String homeFolder = System.getProperty("user.home");
-        File apiHostTokenFile = new File(homeFolder + File.separator +
-                "." + URI.create(baseUrl).getHost() + "-" + apiAuthentication.getFileName().substring(1));
-        if (apiHostTokenFile.exists()) {
-            return apiHostTokenFile;
-        } else {
-            log.debug("Host api token file {} does not exist", apiHostTokenFile.getPath());
-        }
-        return super.determineApiTokenFile(apiAuthentication);
     }
 
     private PullRequest mutatePullRequest(PullRequest pullRequest, MutationName mutationName) {

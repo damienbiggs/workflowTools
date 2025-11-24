@@ -230,7 +230,7 @@ public class Vcd extends AbstractRestService {
         }
         String refreshToken = readExistingApiToken(ApiAuthentication.vcd_refresh);
         if (StringUtils.isNotBlank(refreshToken)) {
-            log.info("Refresh token already exists in {}", determineApiTokenFile(ApiAuthentication.vcd_refresh).getPath());
+            log.info("Refresh token already exists in {}", determineApiTokenFile(ApiAuthentication.vcd_refresh, false).getPath());
             return;
         }
         HttpResponse sessionResponse = get(cloudapiUrl + "/sessions/current", HttpResponse.class, acceptHeader(UserSession.class));
@@ -272,7 +272,7 @@ public class Vcd extends AbstractRestService {
         connection.removeStatefulParam(RequestHeader.AUTHORIZATION);
         String refreshToken = readExistingApiToken(ApiAuthentication.vcd_refresh);
         if (StringUtils.isNotBlank(refreshToken) && StringUtils.isNotBlank(vcdOrg) && !disableRefreshToken) {
-            File refreshTokenFile = determineApiTokenFile(ApiAuthentication.vcd_refresh);
+            File refreshTokenFile = determineApiTokenFile(ApiAuthentication.vcd_refresh, true);
             log.info("Using refresh token from {}", refreshTokenFile.getPath());
             try {
                 apiToken = createAccessTokenUsingRefreshToken(refreshToken);
@@ -330,7 +330,7 @@ public class Vcd extends AbstractRestService {
     }
 
     @Override
-    protected File determineApiTokenFile(ApiAuthentication apiAuthentication) {
+    protected File determineApiTokenFile(ApiAuthentication apiAuthentication, boolean savingToken) {
         String homeFolder = System.getProperty("user.home");
 
         File apiOrgTokenFile = new File(homeFolder + "/." + vcdOrg.toLowerCase().replace("/", "_") + "-" + URI.create(baseUrl).getHost()

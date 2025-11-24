@@ -22,7 +22,6 @@ import com.vmware.jenkins.domain.TestResult;
 import com.vmware.jenkins.domain.TestResults;
 import com.vmware.jenkins.domain.User;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
-import com.vmware.util.IOUtils;
 import com.vmware.util.MatcherUtils;
 import com.vmware.util.StopwatchUtils;
 import com.vmware.util.StringUtils;
@@ -38,7 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.vmware.http.cookie.ApiAuthentication.jenkins_token;
 import static com.vmware.util.StringUtils.humanReadableSize;
@@ -47,9 +45,9 @@ import static com.vmware.util.ThreadUtils.retryFunctionUntilSucceeds;
 public class Jenkins extends AbstractRestBuildService {
     private final boolean usesCsrf;
     private String apiToken;
-    private boolean disableLogin;
+    private final boolean disableLogin;
     private boolean apiTokenUsedForLogin;
-    private Map<String, String> testReportUrlOverrides;
+    private final Map<String, String> testReportUrlOverrides;
 
     private HomePage homePage = null;
 

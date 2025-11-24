@@ -31,6 +31,9 @@ public class SsoConfig {
     @ConfigurableProperty(help = "Id / XPath of input field for email address when signing in with SSO")
     public String emailAddressInputId;
 
+    @ConfigurableProperty(help = "Id / XPath of input field for submitting username when signing in with SSO")
+    public String usernameSubmitButtonId;
+
     @ConfigurableProperty(help = "Id / XPath of input field for submitting email address when signing in with SSO")
     public String emailAddressSubmitButtonId;
 

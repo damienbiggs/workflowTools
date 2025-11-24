@@ -31,8 +31,12 @@ public class InputUtils {
     }
 
     public static int readSelection(InputListSelection[] choices, String title) {
+        return readSelections(choices, title, true).get(0);
+    }
+
+    public static List<Integer> readSelections(InputListSelection[] choices, String title, boolean singleSelection) {
         List<String> choiceTexts = Arrays.stream(choices).map(InputListSelection::getLabel).collect(Collectors.toList());
-        return readSelections(choiceTexts, title, true).get(0);
+        return readSelections(choiceTexts, title, singleSelection);
     }
 
     public static List<Integer> readSelections(Collection<String> choices, String title, boolean singleSelection) {

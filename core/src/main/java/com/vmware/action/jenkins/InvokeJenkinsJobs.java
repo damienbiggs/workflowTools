@@ -14,6 +14,7 @@ import com.vmware.jenkins.domain.JobParameter;
 import com.vmware.jenkins.domain.JobParameters;
 import com.vmware.jenkins.domain.ParameterDefinition;
 import com.vmware.reviewboard.domain.ReviewRequestDraft;
+import com.vmware.util.MatcherUtils;
 import com.vmware.util.StringUtils;
 import com.vmware.util.ThreadUtils;
 import com.vmware.util.exception.FatalException;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -35,6 +37,9 @@ public class InvokeJenkinsJobs extends BaseCommitWithJenkinsBuildsAction {
 
     private static final String ASK_FOR_PARAM = "$ASK";
     private static final String SANDBOX_BUILD_NUMBER = "$SANDBOX_BUILD";
+    private static final String JENKINS_BUILD_NUMBER = "$JENKINS_BUILD_NUMBER";
+    private static final String RANDOM_STRING_VALUE = "\\$RANDOM_STRING:(\\d+)";
+    private static final String SALTCHARS = "abcdefghijklmnopqrstuvwxyz";
 
     public InvokeJenkinsJobs(WorkflowConfig config) {
         super(config);
@@ -105,9 +110,8 @@ public class InvokeJenkinsJobs extends BaseCommitWithJenkinsBuildsAction {
         log.info("Invoking job {} using display name {}", jobToInvoke.name, jobToInvoke.buildDisplayName);
 
         Job job = jenkins.getJobDetails(jobToInvoke);
-        JobParameters params = constructParametersForJob(jobToInvoke.parameters, job.getParameterDefinitions());
-
         int buildNumber = jenkins.getJobDetails(jobToInvoke).nextBuildNumber;
+        JobParameters params = constructParametersForJob(jobToInvoke.parameters, job.getParameterDefinitions(), buildNumber);
 
         JobBuild expectedNewBuild = new JobBuild(buildNumber, jobToInvoke.url);
         expectedNewBuild.name = jobToInvoke.buildDisplayName;
@@ -124,7 +128,7 @@ public class InvokeJenkinsJobs extends BaseCommitWithJenkinsBuildsAction {
         return expectedNewBuild;
     }
 
-    private JobParameters constructParametersForJob(List<JobParameter> parameters, List<ParameterDefinition> parameterDefinitions) {
+    private JobParameters constructParametersForJob(List<JobParameter> parameters, List<ParameterDefinition> parameterDefinitions, int jenkinsBuildNumber) {
         List<JobParameter> paramsToUse = new ArrayList<>();
         for (JobParameter parameter : parameters) {
             String paramName = parameter.name;
@@ -165,7 +169,7 @@ public class InvokeJenkinsJobs extends BaseCommitWithJenkinsBuildsAction {
                         Map vappJson = gson.fromJson(jsonData, Map.class);
                         Map updatedVappJson = gson.fromJson(new FileReader(jenkinsConfig.vappJsonUpdateFile), Map.class);
                         log.debug("Updating vapp json properties {}", updatedVappJson.keySet());
-                        updateJson(vappJson, updatedVappJson);
+                        updateJson(vappJson, updatedVappJson, jenkinsBuildNumber);
                         String updatedJson = gson.toJson(vappJson);
                         log.trace(updatedJson);
                         paramValue = URLEncoder.encode(updatedJson, "UTF-8");
@@ -188,7 +192,16 @@ public class InvokeJenkinsJobs extends BaseCommitWithJenkinsBuildsAction {
         return new JobParameters(paramsToUse);
     }
 
-    private void updateJson(Map<String, Object> vappJson, Map<String, Object> updatedVappJson) {
+    private void updateJson(Map<String, Object> vappJson, Map<String, Object> updatedVappJson, int jenkinsBuildNumber) {
+        for (String jsonKey : new ArrayList<>(updatedVappJson.keySet())) {
+            if (vappJson.containsKey(jsonKey)) {
+                continue;
+            }
+            Object updatedValue = updatedVappJson.get(jsonKey);
+            if (updatedValue != null) {
+                vappJson.put(jsonKey, populateVariablesIfNeeded(updatedValue, jenkinsBuildNumber));
+            }
+        }
         for (String jsonKey : new ArrayList<>(vappJson.keySet())) {
             Object existingValue = vappJson.get(jsonKey);
             if ((existingValue instanceof List || existingValue instanceof Map) && !updatedVappJson.containsKey(jsonKey)) {
@@ -206,14 +219,14 @@ public class InvokeJenkinsJobs extends BaseCommitWithJenkinsBuildsAction {
                     } else if (existingList.get(i) instanceof Map) {
                         Map<String, Object> existingMap = (Map<String, Object>) existingList.get(i);
                         if (existingMap.values().stream().allMatch(value -> !value.getClass().isPrimitive())) {
-                            updateJson(existingMap, (Map<String, Object>) updatedList.get(i));
+                            updateJson(existingMap, (Map<String, Object>) updatedList.get(i), jenkinsBuildNumber);
                         } else {
                             vappJson.put(jsonKey, updatedList.get(i));
                         }
                     }
                 }
             } else {
-                vappJson.put(jsonKey, updatedValue);
+                vappJson.put(jsonKey, populateVariablesIfNeeded(updatedValue, jenkinsBuildNumber));
             }
         }
     }
@@ -225,6 +238,30 @@ public class InvokeJenkinsJobs extends BaseCommitWithJenkinsBuildsAction {
             }
         }
         return null;
+    }
+
+    private Object populateVariablesIfNeeded(Object value, int jenkinsBuildNumber) {
+        if (!(value instanceof String)) {
+            return value;
+        }
+        String val = (String) value;
+        String randomStringValueLength = MatcherUtils.singleMatch(val, RANDOM_STRING_VALUE);
+        if (randomStringValueLength != null) {
+            String randomValue = getSaltString(Integer.parseInt(randomStringValueLength));
+            val = val.replace("$RANDOM_STRING:" + randomStringValueLength, randomValue);
+        }
+        val = val.replace(JENKINS_BUILD_NUMBER, String.valueOf(jenkinsBuildNumber));
+        return val;
+    }
+
+    protected String getSaltString(int length) {
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < length) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        return salt.toString();
     }
 
 }

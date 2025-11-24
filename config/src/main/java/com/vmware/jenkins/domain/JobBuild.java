@@ -118,7 +118,7 @@ public class JobBuild extends BaseDbClass implements InputListSelection {
     }
 
     public String logTextUrl() {
-        return UrlUtils.addRelativePaths(url, "logText/progressiveText");
+        return UrlUtils.addRelativePaths(url, "consoleText");
     }
 
     public String stopUrl() {
